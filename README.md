@@ -8,11 +8,67 @@
 
 ## 全新安装
 
-### 1. 放行服务端口
+以下步骤在服务器上执行，使用同一个普通用户登录和管理 DSH；只有安装系统软件、设置防火墙和启用 linger 的命令使用 `sudo`。不要用 `sudo ./install.sh`，否则程序、数据和用户服务会安装到 root 的目录。已有本适配版安装时直接看[手动升级与恢复](#手动升级与恢复)。
 
-以下命令适用于由 iptables 管理 INPUT 规则的 Ubuntu 服务器。不要混用于已有的 UFW/firewalld 管理配置。默认端口为 TCP 3080；云侧安全组也必须允许该端口。
+### 0. 确认前置条件
+
+| 项目 | 要求及准备方法 |
+|---|---|
+| 操作系统与架构 | 已验证 Ubuntu 24.04、Linux `s390x`、glibc。x86_64、aarch64 和 Alpine/musl 不能使用这个包；其他 glibc 发行版尚未验收 |
+| 权限与服务管理 | 可写的普通用户主目录；安装系统依赖和开放端口需要 sudo/管理员协助。常驻运行需要 systemd 用户服务；前台启动无需 systemd |
+| 资源 | 验证机器为 2 CPU / 4 GiB RAM。建议至少 5 GiB 可用磁盘，另为工作文件、会话和日志留空间；首包解压约 0.71 GiB，安装时还会复制一份。这里只是运行建议，源码编译需要更多资源 |
+| 网络 | 服务器能解析域名并通过 HTTPS 访问 GitHub、所选模型/搜索服务；浏览器能访问服务器 TCP 3080。云侧安全组和本机防火墙需分别检查 |
+| 模型凭据 | 准备服务商提供的 API Key、API 协议、Base URL 和准确的模型 ID；无凭据也能启动 WebUI，但不能完成 Agent 请求。搜索凭据与聊天凭据分别配置 |
+| Node 与编译器 | Node 和运行依赖随包提供，安装发行包无需安装系统 Node、pnpm、Rust 或编译器 |
+| Office 功能 | 文档转换、预览与表格重算另需系统 LibreOffice、python3-uno 和 Poppler；基础聊天与终端不依赖这些软件 |
+
+先检查环境：
 
 ```bash
+id -un
+uname -m
+cat /etc/os-release
+getconf GNU_LIBC_VERSION
+ps -p 1 -o comm=
+df -h "$HOME"
+free -h
+sudo -v
+```
+
+`uname -m` 必须输出 `s390x`；本指南的后台服务步骤要求 PID 1 为 `systemd`。使用 Ubuntu 24.04 时安装基础工具及共享运行库：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  ca-certificates curl tar gzip coreutils libstdc++6 libgcc-s1 \
+  iproute2 procps dbus-user-session nano
+```
+
+再检查用户服务和端口：
+
+```bash
+systemctl --user is-system-running
+ss -ltn '( sport = :3080 )'
+```
+
+用户服务管理器能响应即可；`degraded` 需要查看 `systemctl --user --failed`，不必然表示 DSH 不能运行。若提示 `Failed to connect to bus`，安装 `dbus-user-session` 后退出并重新通过 SSH 登录，使用普通用户的登录会话执行；不要改成 `sudo systemctl --user`。端口检查若出现 `LISTEN` 行，先确认现有服务，或为 DSH 选择其他端口。
+
+可检查不携带密钥的 HTTPS 连通性：
+
+```bash
+curl -I --connect-timeout 15 --max-time 30 https://github.com/
+```
+
+模型服务也需从服务器本机能访问。接口根路径返回 401 或 404 只能说明收到 HTTP 响应，不能证明模型/搜索凭据可用。DNS、证书或连接超时应先解决；不使用 `curl -k` 跳过证书检查。
+
+### 1. 放行服务端口
+
+以下命令适用于由 iptables 管理 INPUT 规则的 Ubuntu 服务器，已在 IBM 测试机验证。默认端口为 TCP 3080；先在云控制台的安全组/网络规则中允许浏览器来源访问这个端口。不要改动已有的 SSH 规则。
+
+先确认本机使用的管理工具。若使用 UFW，可用 `sudo ufw status` 检查，并用 `sudo ufw allow 3080/tcp` 放行；若使用 firewalld，请在现有 zone 中配置。下面的 iptables 方案不要混用于已有的 UFW/firewalld 配置。
+
+```bash
+sudo apt-get install -y iptables
 sudo iptables -C INPUT -p tcp --dport 3080 -j ACCEPT 2>/dev/null ||
   sudo iptables -I INPUT 1 -p tcp --dport 3080 -j ACCEPT
 
@@ -21,14 +77,14 @@ sudo env DEBIAN_FRONTEND=noninteractive \
 sudo netfilter-persistent save
 ```
 
-命令只增加规则，不清空现有规则。更换端口时同步更改防火墙、安装参数和 public URL。重启后检查规则与外部访问：
+命令只增加规则，不清空现有规则。更换端口时同步更改云侧规则、本机防火墙、安装的 `--port` 和 public URL，例如 `--port 4080 --public-url http://你的公网IP:4080/`。服务安装完成并重启服务器后检查规则与外部访问：
 
 ```bash
 sudo iptables -C INPUT -p tcp --dport 3080 -j ACCEPT
 sudo systemctl status netfilter-persistent --no-pager
 ```
 
-若本机监听正常但外部访问超时，请检查云侧规则及上游网络。撤销规则：
+若本机监听正常但外部访问超时，请检查云侧规则及上游网络。撤销上面增加的 iptables 规则：
 
 ```bash
 sudo iptables -D INPUT -p tcp --dport 3080 -j ACCEPT
@@ -37,30 +93,53 @@ sudo netfilter-persistent save
 
 ### 2. 安装压缩包
 
-从本仓库 Release 下载 `deepseek-harness-VERSION-linux-s390x.tar.gz` 及对应 `.sha256`，先校验，再解压。首版可优先使用上面的 IBM 原生验证包；自动交叉包的目标运行验证限制见 CI/CD 部分。
+从本仓库 Release 下载 `deepseek-harness-VERSION-linux-s390x.tar.gz` 及对应 `.sha256`，先校验，再解压。首版可优先使用上面的 IBM 原生验证包；自动交叉包的目标运行验证限制见 CI/CD 部分。校验结果必须为 `OK`，失败时不要继续安装。
 
-下载首版原生验证包：
+下面整段可复制执行：会创建独立下载目录，并询问浏览器实际访问的公网 URL。IBM 测试机填写 `http://148.100.112.82:3080/`；其他机器填写自己的公网 IP/域名。公网 URL 不要填写 `0.0.0.0` 或 `127.0.0.1`。
 
 ```bash
+(
+set -e
+download_dir=$(mktemp -d "$HOME/dsh-download.XXXXXXXX")
+cd "$download_dir"
 release=https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/download/native-0.2.2-rc.5-s390x-b6d3d87
 curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz"
 curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256"
 sha256sum -c deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256
 tar -xzf deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz
 cd deepseek-harness-0.2.2-rc.5-linux-s390x
-./install.sh --public-url http://SERVER_IP:3080/
+read -r -p '请输入公网 URL（http://你的公网IP:3080/）: ' dsh_public_url
+: "${dsh_public_url:?公网 URL 不能为空}"
+./install.sh --host 0.0.0.0 --port 3080 --public-url "$dsh_public_url"
+)
 ```
+
+安装器先检查包完整性和目标架构，再复制程序，不会自动启动服务。`--public-url` 会同时用于托管服务的认证入口和 trusted host。成功后可删除刚才的下载目录以腾出空间，保留已安装的程序和数据目录。
+
+| 内容 | 默认位置 |
+|---|---|
+| 程序及版本 | `~/.local/lib/deepseek-harness-s390x/`，`current` 指向当前版本 |
+| 启动参数 | `~/.local/lib/deepseek-harness-s390x/installation.json` |
+| 命令链接 | `~/.local/bin/dsh` |
+| 数据、凭据和配置 | `~/.local/share/deepseek-harness/` |
+| 用户服务文件 | `~/.config/systemd/user/deepseek-harness-s390x.service`（下一步生成） |
+
+已有 `~/.local/bin/dsh` 时安装会拒绝覆盖；先用 `ls -l "$HOME/.local/bin/dsh"` 和 `command -v dsh` 确认来源，保留旧安装后再安排命令链接。看到 `Use upgrade for an existing installation` 表示应使用升级流程，不要删除数据重装。数据和程序分开保存；`--data /absolute/path` 可指定数据目录，直接使用 CLI 时也要设置相同的 `DSH_HOME`。
+
+使 `dsh` 在当前和后续 Bash 登录中可用：
 
 ```bash
-sha256sum -c deepseek-harness-VERSION-linux-s390x.tar.gz.sha256
-tar -xzf deepseek-harness-VERSION-linux-s390x.tar.gz
-cd deepseek-harness-VERSION-linux-s390x
-./install.sh --public-url http://SERVER_IP:3080/
+export PATH="$HOME/.local/bin:$PATH"
+if ! grep -Fqx 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
+  printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.bashrc"
+fi
+command -v dsh
+dsh --version
 ```
 
-默认程序目录为 `~/.local/lib/deepseek-harness-s390x`，命令链接为 `~/.local/bin/dsh`，数据目录为 `~/.local/share/deepseek-harness`。已有 `~/.local/bin/dsh` 时安装会拒绝覆盖。数据和程序分开保存；`--data /absolute/path` 可指定数据目录。
+`command -v dsh` 应指向当前用户的 `~/.local/bin/dsh`；仍找不到时可直接使用这个绝对路径。Zsh 用户把配置写入 `~/.zshrc`。运行时版本以包内 Node 为准，不受系统 Node 版本影响。
 
-Office 预览使用系统 LibreOffice 和 Poppler。安装这些运行依赖不涉及现场源码编译：
+需要 Office 预览、转换或表格重算时安装这些软件；无需现场源码编译：
 
 ```bash
 sudo apt-get update
@@ -71,30 +150,60 @@ sudo apt-get install -y --no-install-recommends \
 
 ### 3. 启动
 
-前台启动：
-
-```bash
-runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" foreground
-```
-
-安装用户级 systemd 服务，并使服务在退出登录后继续运行、开机启动：
+推荐使用用户级 systemd 常驻服务。先安装/启用服务，再启用用户管理器的开机运行，最后启动：
 
 ```bash
 runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
 "$runtime/node/bin/node" "$runtime/manage-install.mjs" service
 sudo loginctl enable-linger "$USER"
 "$runtime/node/bin/node" "$runtime/manage-install.mjs" start
+systemctl --user status deepseek-harness-s390x.service --no-pager
+loginctl show-user "$USER" -p Linger
 ```
 
-公网安装为文件右键菜单设置 `resolutionTimeoutMs: 15000`，避免上游默认 1 秒预算在远程网络上省略下载项；可在 `profiles/web/cordis.patch.yml` 调整。服务采用 `Restart=on-failure`、进程组清理和私有文件权限。查看状态、日志、停止或重启：
+应看到 `active (running)` 和 `Linger=yes`。这时关闭 SSH 或退出浏览器，Web 服务及已转入后台的任务仍可运行；服务器重启后服务也会启动。首次启动请等待就绪日志出现，仅看到 systemd 的 active 状态还不能证明 WebUI 已就绪。
+
+日常管理使用同一个普通用户，在任意目录按需执行对应命令：
+
+| 操作 | 命令 |
+|---|---|
+| 启动 | `systemctl --user start deepseek-harness-s390x.service` |
+| 停止 | `systemctl --user stop deepseek-harness-s390x.service` |
+| 重启 | `systemctl --user restart deepseek-harness-s390x.service` |
+| 状态 | `systemctl --user status deepseek-harness-s390x.service --no-pager` |
+| 最近日志 | `journalctl --user -u deepseek-harness-s390x.service -n 50 --no-pager` |
+| 持续跟踪日志 | `journalctl --user -u deepseek-harness-s390x.service -f` |
+
+日志跟踪中按 Ctrl-C 仅退出查看，不停止服务。`stop` 会停止 DSH 及其进程组；有任务时请先在 WebUI 结束任务和终端。服务采用 `Restart=on-failure`，主动 `stop` 后不会立即自启，但仍保留下次开机启动。取消开机启动并停止：
 
 ```bash
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" status
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" logs
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" stop
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" restart
+systemctl --user disable --now deepseek-harness-s390x.service
 ```
+
+重新启用并启动：
+
+```bash
+systemctl --user enable --now deepseek-harness-s390x.service
+```
+
+也可用管理器的 `status`、`logs`、`stop`、`restart` 等命令完成相同操作。公网安装为文件右键菜单设置 `resolutionTimeoutMs: 15000`，避免上游默认 1 秒预算在远程网络上省略下载项；可在 `profiles/web/cordis.patch.yml` 调整。
+
+只做前台调试时执行下面的命令；它读取安装时保存的 host、port、public URL 和数据目录，Ctrl-C 停止。先停止同端口的常驻服务，否则端口会冲突：
+
+```bash
+runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
+"$runtime/node/bin/node" "$runtime/manage-install.mjs" foreground
+```
+
+原来的 `dsh web` 命令仍然可用，调用同一套 WebUI/Agent。它是前台命令；希望退出 SSH 后继续运行时使用上面的 systemd 服务。直接执行 `dsh web` 使用上游默认监听参数，不会自动读取 `installation.json`；公网启动应显式带上参数：
+
+```bash
+DSH_HOME="$HOME/.local/share/deepseek-harness" \
+  "$HOME/.local/bin/dsh" web --no-open --host 0.0.0.0 --port 3080 \
+  --public-url http://你的公网IP:3080/ --trusted-host 你的公网IP:3080
+```
+
+把两处 `你的公网IP` 换成同一个真实 IP/域名。自定义数据目录时把 `DSH_HOME` 一起换成安装时的目录。前台进程不保证在 SSH 断开后存活，也不要同时启动两份访问同一数据目录的 DSH。
 
 ### 4. 获取认证入口
 
@@ -105,11 +214,124 @@ sed -n 's/^dsh web: \(http[^ ]*\)$/\1/p' \
   "$HOME/.local/share/deepseek-harness/service.log"
 ```
 
-监听地址为 `0.0.0.0`，内部自连接使用 loopback，对外地址为 `--public-url`。保留 DSH 的 token/cookie、Host/Origin 及 WebSocket 认证。HTTP 部署用于本计划的初始运行；公网 HTTP 会传输明文，应按自己的网络需求配置 TLS。
+在自己电脑的浏览器打开完整 URL，接受首次欢迎提示后进入设置。重启后以当前日志的入口为准，旧入口可能失效；直接 CLI 启动时从它的终端输出获取入口。若文件尚无入口，稍等并看上一节日志；不要为了访问而关闭认证或 Host/Origin 检查。
+
+监听地址为 `0.0.0.0`，内部自连接使用 loopback，对外地址为 `--public-url`。保留 DSH 的 token/cookie、Host/Origin 及 WebSocket 认证。默认 HTTP；公网 HTTP 会传输明文，有域名/证书时按[HTTPS](#https)配置 TLS。
 
 ### 5. 配置模型
 
-在 WebUI 设置中配置可用的模型 provider、API 地址、模型名和密钥，再新建会话。不同兼容接口支持的模型名、工具调用和流式协议可能不同。仓库和压缩包不携带测试密钥；真实模型验收结果标记为用户提供的兼容 API，自报模型 `deepseek-v4.1-flash`。
+模型请求、网页搜索、网页获取是三个分别配置的能力。聊天成功不代表搜索成功；第三方服务的密钥应保存在它自己的 provider 下，避免官方工具把它当作 DeepSeek 官方密钥使用。
+
+**使用 DeepSeek 官方服务：** 在 **设置 → 模型 → DeepSeek** 中填写官方 API Key，保留官方默认端点和受支持的模型列表，保存后在会话中选择该提供方。官方卡片使用 Anthropic Messages 协议，不要把普通 OpenAI 兼容中转的 `/v1` 地址和密钥填入此卡片。已有 DeepSeek 账号时也可使用 UI 提供的账号登录路线，能否请求由账号服务实际权限决定。
+
+**使用第三方中转或自部署服务：**
+
+1. 打开 **设置 → 模型 → 添加模型提供商 → 自定义模型 API**。首次弹出的官方密钥引导可关闭后再配置；第三方密钥不要填入官方卡片。
+2. 填写唯一 Provider ID，例如 `my-gateway`；不要使用内置的 `deepseek-official` 或 `deepseek-account`。
+3. 按服务商说明选择 **API 协议**。常见中转使用 **OpenAI Chat Completions**；只有服务商明确支持时才选择 Responses 或 Anthropic Messages。
+4. 填写 **Base URL** 与该服务商的 **API 密钥**。Chat Completions 示例为 `https://gateway.example/v1`，不含 `/chat/completions`；自定义 Anthropic Messages 示例为 `https://gateway.example`，SDK 会追加 `/v1/messages`。这些是格式示例，须替换为真实服务地址。
+5. 点击 **获取可用模型**，选择后点 **更新列表**。若服务商未实现模型列表接口，可手动输入服务商给出的准确模型 ID；至少配置一个模型。不要把显示名当作请求 ID。
+6. 保存/应用，创建会话并在模型选择器中选中新 provider 和模型。先发送一个简单问题，确认有流式回复；随后让 Agent 执行 `uname -m`，检查真实工具输出为 `s390x`。
+
+图片输入、工具调用、推理等级和流式协议必须由所选端点/模型实际支持；先使用它明确支持的配置。模型名含 `deepseek` 并不会让第三方 provider 自动变为官方模型路由。绿色凭据标志只说明已保存/已检测到密钥，不能证明服务端接受它。
+
+UI 会把新自定义 provider 的密钥保存到独立凭据引用，配置文件只记录引用名。凭据存储默认为 `$DSH_HOME/.credentials.yaml`，权限应为 `600`。通过 UI 保存即可，无需把密钥写入 README、启动命令或公开仓库。SSH 中临时 `export` 的变量不会自动进入已经运行的 systemd 服务；已有同名存储凭据也优先于环境变量。
+
+仓库和压缩包不携带测试密钥；真实模型验收使用用户提供的兼容 API，自报模型 `deepseek-v4.1-flash`，不代表官方 API 或 Web Search 已通过真实验收。
+
+### 6. 单独配置 Web Search / Web Fetch
+
+本适配保留上游实现。搜索设为 **自动选择** 时，`deepseek-official` / `deepseek-account` 模型路由优先使用 **DeepSeek 服务端搜索**（Messages）；其他路由优先使用 **DeepSeek Search API**。默认直接 Search API 地址为 `https://api.deepseek.com/v1/tools/search`；默认网页获取为 **本机直接获取**（`http`），无需 DeepSeek 密钥，但只能获取允许的公网 HTTP(S) 地址。
+
+第三方模型页面的 `baseURL` 不会自动替换这些搜索端点。如果把第三方密钥保存为全局 `DEEPSEEK_API_KEY`，官方 Search API 可能取到它并返回 **HTTP 401 / Authentication Fails**。这是端点和凭据不匹配，不能通过 s390x 编译修复。
+
+**选择官方搜索凭据：**
+
+1. 打开 **侧栏插件 → 内置插件配置 → 官方分组 → 网页搜索与获取**。
+2. 在 **网页搜索提供方** 选择 **DeepSeek Search API**，计费方式选择 **DeepSeek API Key** 或 **已登录的 DeepSeek 账号**。
+3. Key 路线使用 Models 页 DeepSeek 卡片中的官方凭据；账号路线需先完成 DeepSeek 账号登录。该服务实际权限、额度和计费由服务商决定。
+4. **网页获取提供方** 保持 **本机直接获取**，点 **保存**。下一次操作生效。
+5. 新会话要求 Agent 搜索并引用来源，展开 `web_search` 工具卡，检查工具是否真正成功且返回可打开的 URL；仅看模型文字不能算搜索验收。
+
+如已用 YAML 配置独立搜索字段，计费菜单会显示被覆盖；需先检查下面的高级配置。另一选项 **DeepSeek 服务端搜索** 使用独立 Messages 端点，默认 `https://api.deepseek.com/anthropic/v1/messages`，要求端点支持服务端 `web_search_20250305`。普通聊天兼容接口不保证支持它；只改域名不会增加搜索能力。
+
+**搜索与第三方聊天隔离（高级配置）：** 以下也适用于服务商明确提供兼容 DeepSeek Search API 的搜索网关。请在没有活动任务时操作，Web profile 配置可能热重载。先备份，再编辑用户 patch；保留现有条目，对已有同 id 条目合并 `config`，不要覆盖整个文件或重复添加同 id。下面按默认数据目录操作，自定义安装需替换 `dsh_data`：
+
+```bash
+dsh_data="$HOME/.local/share/deepseek-harness"
+dsh_patch="$dsh_data/profiles/web/cordis.patch.yml"
+cp -p "$dsh_patch" "$dsh_patch.backup-$(date +%Y%m%d-%H%M%S)"
+nano "$dsh_patch"
+```
+
+追加/合并下面的配置。它固定官方 Search API，并只读取独立的 `DEEPSEEK_SEARCH_API_KEY`：
+
+```yaml
+- id: web
+  config:
+    searchProvider: deepseek-search-api
+    fetchProvider: http
+- id: web-deepseek-api
+  config:
+    searchBaseURL: https://api.deepseek.com/v1/tools
+    searchApiKeyEnv: DEEPSEEK_SEARCH_API_KEY
+```
+
+`searchBaseURL` 填包含路径前缀的基础地址，**不含最后的 `/search`**，程序会追加该路径。使用第三方搜索时，只能替换为服务商确认兼容的搜索 API 基础地址，并配上该搜索服务的密钥；普通 `/v1/chat/completions` 兼容网关不能据此假定也提供 `/v1/tools/search`。这两个字段目前只能在 YAML 中设置；只填地址而省略 `searchApiKeyEnv` 会继续复用 `DEEPSEEK_API_KEY`。
+
+独立密钥可保存到主数据目录的 `.env`。用编辑器输入，不把密钥放进 shell 命令/历史；合并现有文件，不覆盖其他变量，也不重复同名变量：
+
+```bash
+dsh_data="$HOME/.local/share/deepseek-harness"
+(umask 077; touch "$dsh_data/.env")
+chmod 600 "$dsh_data/.env"
+nano "$dsh_data/.env"
+```
+
+添加一行，替换右侧占位内容为真正的搜索密钥：
+
+```dotenv
+DEEPSEEK_SEARCH_API_KEY=替换为此搜索服务的真实密钥
+```
+
+保存并退出编辑器（nano：Ctrl-O、Enter、Ctrl-X），在没有活动任务时重启服务，然后再次检查搜索工具结果：
+
+```bash
+systemctl --user restart deepseek-harness-s390x.service
+```
+
+若 `.credentials.yaml` 的 `refs` 已有同名引用，该值优先于 `.env`，应在现有 `refs` 下更新/移除旧项并保持 `600` 权限；保留 `version`、其他 refs 和 records，不另建重复的 `refs` 键。`DEEPSEEK_SEARCH_BASE_URL` 是另一套 **Messages 搜索** 的环境覆盖变量，不是直接 Search API 的 `searchBaseURL`。
+
+没有可用搜索凭据时，可先使用聊天、终端和本机网页获取，搜索仍不可用；也可安装真正可用的外部搜索 provider 插件，按其文档配置后在下拉框选择它。不要以假结果替代搜索，也不要把切换配置当作成功验收。本项目尚无当前官方搜索凭据的成功调用证据。
+
+### 7. 安装后核对与常见问题
+
+```bash
+"$HOME/.local/bin/dsh" --version
+systemctl --user is-enabled deepseek-harness-s390x.service
+systemctl --user is-active deepseek-harness-s390x.service
+loginctl show-user "$USER" -p Linger
+ss -ltn '( sport = :3080 )'
+curl --connect-timeout 5 --max-time 10 -sS -o /dev/null \
+  -w 'HTTP %{http_code}\n' http://127.0.0.1:3080/
+```
+
+systemd 应为 `enabled` / `active`，linger 应为 `yes`，端口应有监听。未带 token 的本机 HTTP 检查只验证收到响应，登录成功还需外部浏览器认证。确认公网可登录、发送消息、终端可用后退出 SSH，再打开浏览器验证服务仍在线；计划内重启服务器后重复检查以确认服务和防火墙持久化。
+
+| 现象 | 排查方法 |
+|---|---|
+| `dsh: command not found` / 执行到旧版 | 检查 `command -v dsh` 与 PATH；使用 `~/.local/bin/dsh`，不要另装 npm 版覆盖 |
+| `Exec format error` / glibc 错误 | 检查 `uname -m`、系统发行版和下载包；使用已验证的 Ubuntu 24.04 s390x 环境 |
+| `EADDRINUSE` / 重复启动失败 | 用 `ss` 确认端口占用；停止现有 DSH 后再前台启动，或同步修改所有端口配置 |
+| 退出 SSH 后服务关闭 | 确认使用 systemd 服务而非前台 CLI，检查 `Linger=yes` 与 service enabled/active |
+| 本机响应但公网超时 | 检查 wildcard 监听、本机规则、云侧规则和公网 IP；开放服务所用 TCP 端口 |
+| 登录拒绝 / WebSocket 403 | 使用当前完整认证入口，检查 URL、Host/Origin、`--trusted-host`；代理需转发 WebSocket，不关闭认证 |
+| 聊天 401 | 检查当前会话的 provider、协议、Base URL、密钥来源及服务商权限；保存凭据不等于认证成功 |
+| 搜索 401，聊天正常 | 看报错的搜索 endpoint；第三方聊天密钥不能用于官方搜索，按第 6 步分开配置 |
+| 模型列表 404 / 模型不存在 | 按服务商给出的真实模型 ID 手动添加，并确认协议与路径；模型发现成功也不等于推理成功 |
+| 模型请求 429 | 服务端额度/速率限制，降低请求密度、等候后重试；检查任务并发和账户额度 |
+| 修改 `.env` 后仍用旧密钥 | 在空闲时重启；检查同名 `.credentials.yaml` 存储凭据，它优先于环境值 |
+| Office 预览失败 | 确认 `libreoffice --version`、`pdftoppm -v` 和 `/usr/bin/python3 -c 'import uno'` 可用；安装第 2 步可选依赖 |
 
 ## HTTPS
 
@@ -202,6 +424,7 @@ sudo apt-get install -y musl-tools pkg-config gcc-s390x-linux-gnu \
 | Claude Code 子 Agent | SDK 0.3.263 缺 linux-s390x CLI；`pathToClaudeCodeExecutable` 可配置已有兼容程序，但尚无真机可用程序，当前未支持 |
 | CUA 本机控制 | `@ubjs/node` 驱动拒绝 linux/s390x；源码/libffi 路线未完成，当前未支持。外部 CDP 仅覆盖浏览器操作 |
 | DSH 自身子 Agent | 使用真实模型创建子任务、写入/读回文件与执行命令已验证 |
+| Web Search / Web Fetch | 保留上游 provider；默认搜索需要官方凭据或真实兼容搜索服务，当前无官方搜索成功调用证据。第三方聊天成功不代表搜索可用；本机网页获取无需 DeepSeek 密钥 |
 | Landlock | 真机 ABI 4，部分能力受内核限制；DSH 保留 partial enforcement 提示 |
 | Electron 桌面壳 | 不属于服务器发行包 |
 

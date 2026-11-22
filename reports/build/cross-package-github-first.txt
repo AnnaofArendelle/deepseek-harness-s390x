@@ -1,0 +1,47 @@
+9 30.5M    9 2947k    0     0  32.2M      0 --:--:-- --:--:-- --:--:-- 31.9M
+100 30.5M  100 30.5M    0     0   197M      0 --:--:-- --:--:-- --:--:--  197M
+
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/toolchain/node-v24.22.3-linux-x64.tar.xz: OK
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/toolchain/bin
+{"source":"/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/cross-source","upstream":"2e39e70496aa02986ca6a820c5d497e816b69d7e"}
+native/system/packages/darwin-arm64      | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/darwin-x64        | [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/linux-arm64       | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/linux-s390x       | [WARN] Unsupported platform: wanted: {"cpu":["s390x"],"os":["linux"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+packages/experimental/cua-macos          | [WARN] Unsupported platform: wanted: {"cpu":["any"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+? Verifying lockfile at ../release/deepseek-harness-0.2.2-rc.5-linux-s390x/app/pnpm-lock.yaml against supply-chain policies (389 entries)...
+.../app                                  | +667 ++++++++++++++++++++++++++++++++
+.../app                                  | Progress: resolved 0, reused 1, downloaded 0, added 0
+Packages are copied from the content-addressable store to the virtual store.
+  Content-addressable store is at: /home/runner/.local/share/pnpm/store/v11
+  Virtual store is at:             ../release/deepseek-harness-0.2.2-rc.5-linux-s390x/app/node_modules/.pnpm
+.../app                                  | Progress: resolved 0, reused 62, downloaded 2, added 64
+✓ Lockfile at ../release/deepseek-harness-0.2.2-rc.5-linux-s390x/app/pnpm-lock.yaml passes supply-chain policies (389 entries in 3.3s)
+.../app                                  | Progress: resolved 0, reused 126, downloaded 2, added 128
+.../app                                  | Progress: resolved 0, reused 190, downloaded 2, added 192
+.../app                                  | Progress: resolved 0, reused 191, downloaded 2, added 192
+.../app                                  | Progress: resolved 0, reused 254, downloaded 2, added 256
+.../app                                  | Progress: resolved 0, reused 255, downloaded 2, added 256
+.../app                                  | Progress: resolved 0, reused 316, downloaded 25, added 280
+.../app                                  | Progress: resolved 0, reused 343, downloaded 143, added 292
+.../app                                  | Progress: resolved 0, reused 347, downloaded 319, added 324
+.../app                                  | Progress: resolved 0, reused 347, downloaded 319, added 483
+.../app                                  | Progress: resolved 0, reused 347, downloaded 319, added 667, done
+.../@deepseek-ai/dsh-subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs
+.../@deepseek-ai/dsh-subprocess-local postinstall: Done
+
+100 1055k  100 1055k    0     0   539k      0  0:00:01  0:00:01 --:--:--  539k
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/cross-musl/musl-1.2.5.tar.gz: OK
+cross: built /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/cross-source/native/system/packages/linux-s390x/bin/landlock-run
+cross: built /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/cross-source/native/system/packages/linux-s390x/bin/glibc/system.node
+cross: built /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/cross-source/native/system/packages/linux-s390x/bin/musl/system.node
+cross: built /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/cross-source/native/system/packages/linux-s390x/bin/glibc/process.node
+{ name: '@deepseek-ai/node-addon-system-linux-s390x', count: 4 }
+cross: built /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/release/deepseek-harness-0.2.2-rc.5-linux-s390x/app/node_modules/node-pty/build/Release/pty.node
+
+100 28.4M  100 28.4M    0     0   188M      0 --:--:-- --:--:-- --:--:--  189M
+
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/toolchain/target/node-v24.22.3-linux-s390x.tar.xz: OK
+{"packages":1050,"binaries":10,"wrongArchitecture":0,"output":"/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/release/deepseek-harness-0.2.2-rc.5-linux-s390x/dependencies.json"}
+{"test":"release-integrity","elfCount":9,"status":"passed"}
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/dist/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz

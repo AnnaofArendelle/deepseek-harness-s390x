@@ -1,0 +1,10 @@
+{
+  "run": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/44993335010",
+  "commit": "b6d3d87664b5d28a20052954d56ecff7c81e46bb",
+  "status": "failed-after-successful-build",
+  "javascriptTypesAndSimulation": "passed",
+  "crossCompilationAndELF": "passed",
+  "failedStep": "collect report assets: build-selection.json absent in downstream job",
+  "publication": "skipped; native initial release remains draft",
+  "repair": "carry selected-upstream artifact between jobs; latest workflow 2adbb3a"
+}

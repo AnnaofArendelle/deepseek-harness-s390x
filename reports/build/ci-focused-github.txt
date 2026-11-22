@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source
+
+ ✓  thread-safe  packages/boot/hmr/tests/package-manifest.spec.ts (39 tests) 432ms
+ ✓  thread-safe  packages/subprocess/subprocess-local/tests/process-inspector.spec.ts (13 tests) 13ms
+ ✓  thread-safe  packages/host/webserver/tests/webserver.spec.ts (32 tests) 655ms
+ ✓  thread-safe  packages/bundle/web-app/tests/web-app.spec.ts (21 tests) 560ms
+
+ Test Files  4 passed (4)
+      Tests  105 passed (105)
+   Start at  06:26:43
+   Duration  2.06s (transform 744ms, setup 146ms, import 1.01s, tests 1.66s, environment 0ms)

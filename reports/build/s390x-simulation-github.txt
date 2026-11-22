@@ -1,0 +1,29 @@
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+
+ RUN  v4.1.11 /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source
+
+ ✓  thread-safe  packages/subprocess/subprocess-local/tests/s390x-adaptation-simulation.spec.ts (6 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  06:26:46
+   Duration  207ms (transform 74ms, setup 56ms, import 41ms, tests 6ms, environment 0ms)
+
+✔ captures fcntl errno and validates C integer arguments (1.191233ms)
+✔ failed execve returns errno and rejects embedded NUL (0.362027ms)
+✔ execve preserves fd 3, argv, Unicode and exact environment (23.570467ms)
+✔ descriptor flags round trip without changing unrelated flags (25.734387ms)
+✔ accepts ELF64 big-endian machine 22 with the declared Node-API symbols (2.129012ms)
+✔ rejects little-endian and foreign machine headers (1.58624ms)
+✔ rejects the wrong ELF file type, missing registration and truncated headers (2.180259ms)
+✔ rejects undeclared payloads and a nonexecutable launcher (3.957158ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.770607

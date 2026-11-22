@@ -1,6 +1,6 @@
 # 首版验收记录
 
-日期：2026-11-22。上游 `0.2.2-rc.5` / `2e39e70496aa02986ca6a820c5d497e816b69d7e`，Node 24.22.3，pnpm 11.28.5。IBM Ubuntu 24.04 s390x 大端真机。首版原生和本地交叉包均已测试；GitHub 托管 CI 和 Release 尚待授权后执行。
+日期：2026-11-22。上游 `0.2.2-rc.5` / `2e39e70496aa02986ca6a820c5d497e816b69d7e`，Node 24.22.3，pnpm 11.28.5。IBM Ubuntu 24.04 s390x 大端真机。首版原生和本地交叉包均已测试；[GitHub 托管 CI](https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/44994504488) 已全部通过，自动交叉与原生真机验证 Release 已分别发布，详见 README。
 
 | 验收面 | 结果与证据 |
 |---|---|

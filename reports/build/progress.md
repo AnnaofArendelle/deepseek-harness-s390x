@@ -1,6 +1,6 @@
 # 实施状态（2026-11-22）
 
-总目标 G1–G7 活跃，首版尚未发布。
+首版已发布。最终远程下载校验和运行状态记录见 `github-release-final.json`。
 
 - 固定上游 SHA、Node 24.22.3、pnpm 11.28.5；精确补丁应用和 frozen-lockfile 安装已通过。
 - s390x Node-API execve/fcntl、文件锁、Landlock、node-pty 已实际构建。OXC 大端 JSON 转义补丁通过 38 项回归和真机 Client 构建。
@@ -19,4 +19,5 @@
 - 真实模型后台任务界面显示输出，二次确认停止后任务为 killed/SIGTERM，结果文件不存在；远程目录选择实测路径列表和取消通过。
 - 服务器重启验收通过：19 会话恢复、服务自启、持久端口规则和公网终端复验通过。自动交叉包与真机原生首包的证据分别发布。
 - x64 交叉打包干净检出重放通过：GCC/musl 系统绑定和 node-pty、官方 Node/Sharp/ripgrep，1,050 包、9 个 BE ELF、0 异架构，最大 GLIBC 2.36。首版交叉包人工 IBM PTY/SQLite/Zstd/flock、read/select/poll、Landlock/cgroup 和公网 mock Agent/WebUI/jobs/刷新测试通过。自动流水线不包含这些真机操作。
-- 新增 s390x 模拟 6 项、native/ELF 单元 8 项、四组上游 105 项全部通过；包含模拟文件的 Host/Client 聚合类型检查通过。actionlint 和 shell 语法检查通过。剩余 GitHub 授权、实际托管 CI 和 Release，尚未标记完成。
+- 新增 s390x 模拟 6 项、native/ELF 单元 8 项、四组上游 105 项全部通过；包含模拟文件的 Host/Client 聚合类型检查通过。actionlint 和 shell 语法检查通过。
+- GitHub 公开仓库已创建并推送。首次流水线在构建完成后因跨 job 版本选择文件缺失失败，保留记录；修复后的运行 `44994504488` 的 select/x64/cross-package/publish 全部成功。自动交叉 Release `s390x-2e39e70496aa-2adbb3a2` 与真机原生 Release `native-0.2.2-rc.5-s390x-b6d3d87` 已公开，分别携带验证标注和报告。自动工作流无 IBM/SSH/QEMU 操作。

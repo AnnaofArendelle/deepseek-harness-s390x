@@ -1,0 +1,203 @@
+
+100 30.5M  100 30.5M    0     0   217M      0 --:--:-- --:--:-- --:--:--  218M
+
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/toolchain/node-v24.22.3-linux-x64.tar.xz: OK
+/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/.cache/toolchain/bin
+{"source":"/home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source","upstream":"2e39e70496aa02986ca6a820c5d497e816b69d7e"}
+native/system/packages/darwin-arm64      | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/darwin-x64        | [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/linux-arm64       | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+native/system/packages/linux-s390x       | [WARN] Unsupported platform: wanted: {"cpu":["s390x"],"os":["linux"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+packages/experimental/cua-macos          | [WARN] Unsupported platform: wanted: {"cpu":["any"],"os":["darwin"],"libc":["any"]} (current: {"os":"linux","cpu":"x64","libc":"glibc"})
+Scope: all 417 workspace projects
+[WARN] There are cyclic workspace dependencies: /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/apps/cli, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/sdk/client; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/apps/web, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/test-support/client-runtime, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/bundle/web-app; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/api/gateway, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/api/remote-access; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/api/remotes, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-trajectory, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-chat, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-sidebar-documentpreview, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-sidebar-files; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/connection, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/host/authentication-token, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/host/frontend-static; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-conversation, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/client/ui-workspace; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/compaction/compaction, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/interaction/commands, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/core/agent, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/session/session-projection, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/test-support/loader-smoke, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/core/tools, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/test-support/agent-loop-testkit, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/core/agent-loop, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/session/session-persistence-jsonl, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/session/session-format-catalog, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/compaction/compaction-image-offload, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/compaction/compaction-basic, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/compaction/compaction-tool-result-pruner; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/core/agent-default-model, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/settings/settings; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/client-ui-creation-recommendations, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/creation-recommendations; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/client-ui-plugin-recommendations, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/plugin-recommendations; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/forge-github, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/experimental/forge-session; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/llm/llm-deepseek, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/llm/llm-deepseek-api-key; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/preset/agent-preset, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/preset/agent-preset-registry; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/sandbox/sandbox-local, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/sandbox/sandbox-windows-acl; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/ssh/fs-ssh, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/ssh/ssh; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/subagent/subagent-spawn-in-process, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/packages/subagent/tool-subagent; /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/vendor/cordis, /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source/vendor/include
+? Verifying lockfile against supply-chain policies (1756 entries)...
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1434
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1434, reused 0, downloaded 0, added 0
+Progress: resolved 1434, reused 0, downloaded 38, added 0
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: /home/runner/.local/share/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1434, reused 0, downloaded 111, added 4
+Progress: resolved 1434, reused 0, downloaded 182, added 11
+Progress: resolved 1434, reused 0, downloaded 327, added 20
+Progress: resolved 1434, reused 0, downloaded 497, added 31
+✓ Lockfile passes supply-chain policies (1756 entries in 7s)
+Progress: resolved 1434, reused 0, downloaded 566, added 35
+Progress: resolved 1434, reused 0, downloaded 707, added 47
+Progress: resolved 1434, reused 0, downloaded 959, added 64
+Progress: resolved 1434, reused 0, downloaded 1152, added 76
+Progress: resolved 1434, reused 0, downloaded 1425, added 99
+Progress: resolved 1434, reused 0, downloaded 1426, added 140
+Progress: resolved 1434, reused 0, downloaded 1427, added 552
+Progress: resolved 1434, reused 0, downloaded 1427, added 1434, done
+.../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+.../esbuild@0.28.1/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.1/node_modules/esbuild postinstall: Done
+.../node_modules/lefthook postinstall$ node postinstall.js
+.../node_modules/lefthook postinstall: Done
+.../.pnpm/koffi@3.1.1/node_modules/koffi install$ node ./cnoke.cjs -P . -D src/koffi --prebuild --release
+.../.pnpm/koffi@3.1.1/node_modules/koffi install: Done
+.../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+.../node_modules/node-pty install$ node scripts/prebuild.js || node-gyp rebuild
+.../node_modules/node-pty install: > Checking prebuilds...
+.../node_modules/node-pty install: Done
+.../node_modules/node-pty postinstall$ node scripts/post-install.js
+.../node_modules/node-pty postinstall: > Cleaning release folder...
+.../node_modules/node-pty postinstall: > Moving conpty.dll...
+.../node_modules/node-pty postinstall:   SKIPPED (not Windows)
+.../node_modules/node-pty postinstall: Done
+.../esbuild@0.21.5/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.21.5/node_modules/esbuild postinstall: Done
+
+devDependencies:
++ @deepseek-ai/dsh-action-cards 0.2.2-rc.5 <- packages/experimental/action-cards
++ @deepseek-ai/dsh-agent 0.2.2-rc.5 <- packages/core/agent
++ @deepseek-ai/dsh-browser-use 0.2.2-rc.5 <- packages/browser-use/browser-use
++ @deepseek-ai/dsh-computer-use 0.2.2-rc.5 <- packages/computer-use/computer-use
++ @deepseek-ai/dsh-cua 0.2.2-rc.5 <- packages/experimental/cua
++ @deepseek-ai/dsh-cua-bundle 0.2.2-rc.5 <- packages/experimental/cua-bundle
++ @deepseek-ai/dsh-cua-macos 0.2.2-rc.5 <- packages/experimental/cua-macos
++ @deepseek-ai/dsh-cua-windows 0.2.2-rc.5 <- packages/experimental/cua-windows
++ @deepseek-ai/dsh-experimental-browser-use-chrome-devtools-mcp 0.2.2-rc.5 <- packages/experimental/browser-use-chrome-devtools-mcp
++ @deepseek-ai/dsh-experimental-browser-use-playwright-mcp 0.2.2-rc.5 <- packages/experimental/browser-use-playwright-mcp
++ @deepseek-ai/dsh-experimental-browser-use-runtime 0.2.2-rc.5 <- packages/experimental/browser-use-runtime
++ @deepseek-ai/dsh-experimental-browser-use-stagehand-native 0.2.2-rc.5 <- packages/experimental/browser-use-stagehand-native
++ @deepseek-ai/dsh-experimental-claude-code-mods 0.2.2-rc.5 <- packages/experimental/claude-code-mods
++ @deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp 0.2.2-rc.5 <- packages/experimental/computer-use-cua-driver-mcp
++ @deepseek-ai/dsh-experimental-computer-use-cua-driver-native 0.2.2-rc.5 <- packages/experimental/computer-use-cua-driver-native
++ @deepseek-ai/dsh-experimental-forge 0.2.2-rc.5 <- packages/experimental/forge
++ @deepseek-ai/dsh-experimental-forge-github 0.2.2-rc.5 <- packages/experimental/forge-github
++ @deepseek-ai/dsh-experimental-forge-session 0.2.2-rc.5 <- packages/experimental/forge-session
++ @deepseek-ai/dsh-experimental-subagent-oar 0.2.2-rc.5 <- packages/experimental/subagent-oar
++ @deepseek-ai/dsh-experimental-tool-subagent-oar 0.2.2-rc.5 <- packages/experimental/tool-subagent-oar
++ @deepseek-ai/dsh-experimental-tool-worktree 0.2.2-rc.5 <- packages/experimental/tool-worktree
++ @deepseek-ai/dsh-experimental-worktree 0.2.2-rc.5 <- packages/experimental/worktree
++ @deepseek-ai/dsh-forge-gitlab 0.2.2-rc.5 <- packages/experimental/forge-gitlab
++ @deepseek-ai/dsh-hooks-claude-code 0.2.2-rc.5 <- packages/experimental/hooks-claude-code
++ @deepseek-ai/dsh-hooks-codex 0.2.2-rc.5 <- packages/experimental/hooks-codex
++ @deepseek-ai/dsh-linear 0.2.2-rc.5 <- packages/connector/linear
++ @deepseek-ai/dsh-llm 0.2.2-rc.5 <- packages/llm/llm
++ @deepseek-ai/dsh-llm-replay 0.2.2-rc.5 <- packages/test-support/llm-replay
++ @deepseek-ai/dsh-mcp-client 0.2.2-rc.5 <- packages/mcp/mcp-client
++ @deepseek-ai/dsh-mcp-manager 0.2.2-rc.5 <- packages/mcp/mcp-manager
++ @deepseek-ai/dsh-notion 0.2.2-rc.5 <- packages/connector/notion
++ @deepseek-ai/dsh-skill-office 0.2.2-rc.5 <- packages/skill/skill-office
++ @deepseek-ai/dsh-subagent-dsh-sdk 0.2.2-rc.5 <- packages/subagent/subagent-dsh-sdk
++ @deepseek-ai/dsh-terminal-panel 0.2.2-rc.5 <- packages/experimental/terminal-panel
++ @deepseek-ai/dsh-timeline 0.2.2-rc.5 <- packages/experimental/timeline
++ @deepseek-ai/dsh-tool-executor-native 0.2.2-rc.5 <- packages/core/tool-executor-native
++ @deepseek-ai/dsh-tool-executor-ptc 0.2.2-rc.5 <- packages/core/tool-executor-ptc
++ @deepseek-ai/dsh-tool-ralph 0.2.2-rc.5 <- packages/experimental/tool-ralph
++ @deepseek-ai/dsh-tool-session-list 0.2.2-rc.5 <- packages/session-query/tool-session-list
++ @deepseek-ai/dsh-tool-session-query 0.2.2-rc.5 <- packages/experimental/tool-session-query
++ @deepseek-ai/dsh-tool-terminal 0.2.2-rc.5 <- packages/experimental/tool-terminal
++ @deepseek-ai/dsh-tool-workspace-dependencies 0.2.2-rc.5 <- packages/skill/tool-workspace-dependencies
++ @deepseek-ai/dsh-web-fetch-http 0.2.2-rc.5 <- packages/web/web-fetch-http
++ @deepseek-ai/dsh-working-directory 0.2.2-rc.5 <- packages/session/working-directory
++ @stylistic/eslint-plugin 5.10.0
++ @testing-library/dom 10.4.2
++ @testing-library/react 16.3.3
++ @types/js-yaml 4.0.9
++ @types/jsdom 28.0.3
++ @types/mdast 4.0.4
++ @types/node 22.20.1
++ @types/papaparse 5.5.2
++ @types/react 18.3.31
++ @types/react-dom 18.3.7
++ @types/semver 7.8.0
++ @types/spdx-expression-parse 4.0.0
++ @vitest/coverage-v8 4.1.11
++ @yao-pkg/pkg 6.21.0
++ @yarnpkg/cli-dist 4.18.0
++ diff 9.0.0
++ eslint-plugin-sonarjs 4.2.0
++ execa 10.0.1
++ extract-zip 2.0.1
++ fast-check 4.9.0
++ fflate 0.8.3
++ istanbul-lib-report 3.0.1
++ js-yaml 4.3.2
++ jscpd 5.1.2
++ jsdom 29.1.1
++ lefthook 2.1.12
++ lightningcss 1.33.0
++ mdast-util-from-markdown 2.1.0
++ mdast-util-gfm 3.1.0
++ mermaid 11.17.2
++ micromark-extension-gfm 3.0.0
++ oxlint 1.81.0
++ oxlint-tsgolint 7.0.2001
++ papaparse 5.5.3
++ pnpm 11.28.5
++ publint 0.3.24
++ semver 7.8.5
++ smol-toml 1.9.0
++ spdx-expression-parse 5.0.0
++ tar 7.5.22
++ tsdown 0.22.2
++ tsx 4.23.13
++ typescript 6.0.3
++ vite 8.2.2
++ vite-tsconfig-paths 6.1.1
++ vitest 4.1.11
++ zod 4.6.6
+
+packages/subprocess/subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs
+packages/subprocess/subprocess-local postinstall: Done
+. postinstall$ node scripts/install-lefthook.mjs
+. postinstall: Done
+Done in 19.9s using pnpm v11.28.5
+build: built linux-x64/bin/landlock-run
+build: built linux-x64/bin/glibc/system.node
+build: built linux-x64/bin/musl/system.node
+{ name: '@deepseek-ai/node-addon-system-linux-x64', count: 3 }
+$ tsx scripts/build.ts --scope artifacts --serial
+run-gates: build:artifacts running 8 gate(s) with 1 worker(s) from --serial.
+run-gates: start native addon
+run-gates: PASS native addon (0.75s)
+run-gates: start Host Typert
+run-gates: PASS Host Typert (7.13s)
+run-gates: start host compiler
+run-gates: PASS host compiler (53.09s)
+run-gates: start Host bundle
+run-gates: PASS Host bundle (6.60s)
+run-gates: start Desktop bundle
+run-gates: PASS Desktop bundle (1.64s)
+run-gates: start client compiler
+run-gates: PASS client compiler (44.93s)
+run-gates: start Client bundle
+run-gates: PASS Client bundle (6.48s)
+run-gates: start Web build
+run-gates: PASS Web build (5.40s)
+
+run-gates: 8 passed, 0 failed, 0 skipped in 126.01s.
+build: recorded 381 client artifact(s) with 3 public value(s)
+$ tsx scripts/build.ts --scope check --serial
+run-gates: build:check running 2 gate(s) with 1 worker(s) from --serial.
+run-gates: start host aggregate check
+run-gates: PASS host aggregate check (59.30s)
+run-gates: start client aggregate check
+run-gates: PASS client aggregate check (42.61s)
+
+run-gates: 2 passed, 0 failed, 0 skipped in 101.91s.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+
+ RUN  v4.1.11 /home/runner/work/deepseek-harness-s390x/deepseek-harness-s390x/build/ci-source
+
+ ✓  thread-safe  packages/boot/hmr/tests/package-manifest.spec.ts (39 tests) 312ms
+ ✓  thread-safe  packages/subprocess/subprocess-local/tests/process-inspector.spec.ts (13 tests) 10ms
+ ✓  thread-safe  packages/host/webserver/tests/webserver.spec.ts (32 tests) 581ms
+ ✓  thread-safe  packages/bundle/web-app/tests/web-app.spec.ts (21 tests) 548ms
+
+ Test Files  4 passed (4)
+      Tests  105 passed (105)
+   Start at  06:43:26
+   Duration  1.85s (transform 718ms, setup 150ms, import 908ms, tests 1.45s, environment 0ms)

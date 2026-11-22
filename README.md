@@ -2,7 +2,9 @@
 
 独立适配 Linux s390x 大端架构的 DeepSeek Harness。固定基线为官方 `0.2.2-rc.5` / `2e39e70496aa02986ca6a820c5d497e816b69d7e`，随包提供 Node `24.22.3` 和 pnpm `11.28.5`。
 
-当前首版已完成真机安装与重启验收，待 GitHub x64 CI 和首次发布。已有真机测试记录不等同于首次 Release 完成。支持 Ubuntu 24.04 / glibc；Electron 桌面应用不在服务器包内。
+首版已完成 IBM 真机安装、功能与重启验收，独立 GitHub 托管 CI 的源码/模拟检查、交叉编译和自动发布全部成功。支持 Ubuntu 24.04 / glibc；Electron 桌面应用不在服务器包内。
+
+[IBM 原生验证首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/native-0.2.2-rc.5-s390x-b6d3d87) · [自动交叉首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/s390x-2e39e70496aa-2adbb3a2) · [所有发行版（含预发布）](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases) · [成功的 CI](https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/44994504488)。
 
 ## 全新安装
 
@@ -35,7 +37,19 @@ sudo netfilter-persistent save
 
 ### 2. 安装压缩包
 
-从本仓库 Release 下载 `deepseek-harness-VERSION-linux-s390x.tar.gz` 及对应 `.sha256`，先校验，再解压。首次 Release 地址待托管验收成功后提供。
+从本仓库 Release 下载 `deepseek-harness-VERSION-linux-s390x.tar.gz` 及对应 `.sha256`，先校验，再解压。首版可优先使用上面的 IBM 原生验证包；自动交叉包的目标运行验证限制见 CI/CD 部分。
+
+下载首版原生验证包：
+
+```bash
+release=https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/download/native-0.2.2-rc.5-s390x-b6d3d87
+curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz"
+curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256"
+sha256sum -c deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256
+tar -xzf deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz
+cd deepseek-harness-0.2.2-rc.5-linux-s390x
+./install.sh --public-url http://SERVER_IP:3080/
+```
 
 ```bash
 sha256sum -c deepseek-harness-VERSION-linux-s390x.tar.gz.sha256

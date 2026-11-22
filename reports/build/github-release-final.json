@@ -62,7 +62,8 @@
       ],
       "draft": false,
       "html_url": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/native-0.2.2-rc.5-s390x-b6d3d87",
-      "prerelease": true
+      "prerelease": false,
+      "latest": true
     },
     "cross": {
       "assets": [
@@ -120,5 +121,13 @@
   "CIUsesTargetRuntimeOrIBM": false,
   "publicService": "http://148.100.112.82:3080/",
   "publicServiceFinalBrowserTest": "browser-final-delivery-ibm.json: passed",
-  "checkArchiveContentsVerified": true
+  "checkArchiveContentsVerified": true,
+  "nativeStablePromotion": {
+    "verifiedAt": "2026-11-22T07:58:12Z",
+    "latestUrl": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/latest",
+    "tag": "native-0.2.2-rc.5-s390x-b6d3d87",
+    "upstreamRemainsReleaseCandidate": true,
+    "assetDigestsUnchanged": true,
+    "metadataOnly": true
+  }
 }

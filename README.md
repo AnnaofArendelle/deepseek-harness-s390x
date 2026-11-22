@@ -4,11 +4,13 @@
 
 首版已完成 IBM 真机安装、功能与重启验收，独立 GitHub 托管 CI 的源码/模拟检查、交叉编译和自动发布全部成功。支持 Ubuntu 24.04 / glibc；Electron 桌面应用不在服务器包内。
 
-[IBM 原生验证首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/native-0.2.2-rc.5-s390x-b6d3d87) · [自动交叉首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/s390x-2e39e70496aa-2adbb3a2) · [所有发行版（含预发布）](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases) · [成功的 CI](https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/44994504488)。
+[Latest 正式发行版](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/latest) · [IBM 原生验证首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/native-0.2.2-rc.5-s390x-b6d3d87) · [自动交叉首包](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/s390x-2e39e70496aa-2adbb3a2) · [所有发行版（含预发布）](https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases) · [成功的 CI](https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/44994504488)。
+
+当前 Latest 为 IBM 原生验证首包，是本适配仓库的正式发行版；它的上游源码仍为 `0.2.2-rc.5` 候选版。此次转正仅修改 GitHub 发行属性，版本标签、安装包及校验值不变，已有安装无需升级。后续自动发行继续跟随上游的正式版/预发布属性。
 
 ## 全新安装
 
-以下步骤在服务器上执行，使用同一个普通用户登录和管理 DSH；只有安装系统软件、设置防火墙和启用 linger 的命令使用 `sudo`。不要用 `sudo ./install.sh`，否则程序、数据和用户服务会安装到 root 的目录。已有本适配版安装时直接看[手动升级与恢复](#手动升级与恢复)。
+以下步骤在服务器上执行，使用同一个普通用户登录和管理 DSH；只有安装系统软件、设置防火墙和启用 linger 的命令使用 `sudo`。不要用 `sudo ./install.sh`，否则程序、数据和用户服务会安装到 root 的目录。**全新安装从第 0 步开始，确认并配置前置环境后再放行端口；已有合格环境可以跳过第 0 步。** 已有本适配版安装时直接看[手动升级与恢复](#手动升级与恢复)。本页为持续更新的安装指南，首包内附 README 保留了打包时的内容，安装时优先参考本页。
 
 ### 0. 确认前置条件
 

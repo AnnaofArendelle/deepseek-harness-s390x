@@ -23,4 +23,4 @@ mock 仅脚本化模型响应，Agent 循环、bash、文件和后台任务均�
 
 附加功能：外部 Chrome DevTools MCP/CDP 浏览器控制真机通过；SenseVoice、Codex/Claude 独立子 Agent CLI、CUA 本机驱动缺可运行 s390x 实现，当前未支持。DSH 自身子 Agent 已经真实模型验证。Electron 不属于服务器发行包。Office 改用系统 LibreOffice/UNO/Poppler，字体及表格区域图片行为差异见 README。
 
-长期运行入口为 `http://148.100.112.82:3080/`，登录 token 只在服务器私有启动日志中。临时 3082 测试服务与规则在测试后删除。仓库/发行包不包含密钥、私钥或用户数据。
+测试服务器地址不公开，登录 token 只在服务器私有启动日志中。临时 3082 测试服务与规则在测试后删除。仓库/发行包不包含密钥、私钥或用户数据。

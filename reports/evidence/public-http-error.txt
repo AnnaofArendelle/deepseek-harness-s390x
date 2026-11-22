@@ -1,9 +1,9 @@
-*   Trying 148.100.112.82:3080...
+*   Trying SERVER_IP_REDACTED:3080...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 148.100.112.82 (148.100.112.82) port 3080 (#0)
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to SERVER_IP_REDACTED (SERVER_IP_REDACTED) port 3080 (#0)
 > GET /public-probe HTTP/1.1
-> Host: 148.100.112.82:3080
+> Host: SERVER_IP_REDACTED:3080
 > User-Agent: curl/7.81.0
 > Accept: */*
 > 

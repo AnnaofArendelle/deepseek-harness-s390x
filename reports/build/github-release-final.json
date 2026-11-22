@@ -54,9 +54,9 @@
         },
         {
           "browser_download_url": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/download/native-0.2.2-rc.5-s390x-b6d3d87/ibm-initial-acceptance-reports.tar.gz",
-          "digest": "sha256:b1e8aab2bc7a0e2c9c6ab389d09a12d738061966608d0694c47e8919f41ab50a",
+          "digest": "sha256:5ba83134ea5184f8704319461f7dcae9c8a7b8a86dc1c383ba60a14fd1f5a9db",
           "name": "ibm-initial-acceptance-reports.tar.gz",
-          "size": 30179,
+          "size": 30357,
           "state": "uploaded"
         }
       ],
@@ -119,7 +119,6 @@
     "Office uses system LibreOffice/UNO/Poppler"
   ],
   "CIUsesTargetRuntimeOrIBM": false,
-  "publicService": "http://148.100.112.82:3080/",
   "publicServiceFinalBrowserTest": "browser-final-delivery-ibm.json: passed",
   "checkArchiveContentsVerified": true,
   "nativeStablePromotion": {
@@ -129,5 +128,11 @@
     "upstreamRemainsReleaseCandidate": true,
     "assetDigestsUnchanged": true,
     "metadataOnly": true
+  },
+  "privacyRedaction": {
+    "serverAddressRemovedFromCurrentRepository": true,
+    "nativeAcceptanceAttachmentSanitized": true,
+    "nativeRuntimeArchiveUnchanged": true,
+    "note": "Existing commit history was not rewritten."
   }
 }

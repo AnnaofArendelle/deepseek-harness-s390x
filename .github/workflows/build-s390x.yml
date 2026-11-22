@@ -35,6 +35,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_UPSTREAM_REF: ${{ inputs.upstream_ref }}
         run: node scripts/select-upstream.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selected-upstream
+          path: build-selection.json
+          if-no-files-found: error
+          retention-days: 14
   javascript-and-s390x-simulation:
     needs: select
     if: needs.select.outputs.shouldBuild == 'true'
@@ -42,6 +48,9 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: selected-upstream
       - run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config
       - env:
           DSH_UPSTREAM_REF: ${{ needs.select.outputs.commit }}
@@ -55,6 +64,7 @@ jobs:
             build/ci/x64-check-report.txt
             build-selection.json
           retention-days: 14
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -4,5 +4,7 @@
   "version": "0.2.2-rc.5",
   "node": "24.22.3",
   "pnpm": "11.28.5",
-  "nodeLinuxS390xSha256": "b5dbeb563ffb81946478fd765ae92efc21117e410e4e9b7d966bf59b00cee55d"
+  "nodeLinuxS390xSha256": "b5dbeb563ffb81946478fd765ae92efc21117e410e4e9b7d966bf59b00cee55d",
+  "nodeLinuxX64Sha256": "4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb",
+  "nodeLinuxArm64Sha256": "6e51a2ada00f0011cc266f65d98922b403d7ad88f809ca2aa615a5fe1ce6e86c"
 }

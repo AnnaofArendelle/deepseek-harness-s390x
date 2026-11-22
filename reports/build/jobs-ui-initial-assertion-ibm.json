@@ -1,0 +1,9 @@
+{
+  "world": "public-browser-IBM-final-package-real-model",
+  "tests": [
+    "actual-running-background-job-visible-in-session-panel"
+  ],
+  "status": "failed",
+  "sessionId": "session-fefda57c-ecbf-405b-bacd-3de5bc1f71bb",
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('UI_JOB_STARTED', { exact: true }).first() to be visible\u001b[22m\n"
+}

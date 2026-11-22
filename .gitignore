@@ -4,6 +4,8 @@
 .env
 .env.*
 !.env.example
+/.deepseek-test-key
+/.github-test-token
 
 # Read-only source checkouts and downloaded dependency inspection material.
 /investigation/
@@ -13,3 +15,6 @@
 /build/
 /node_modules/
 /.cache/
+/build-selection.json
+__pycache__/
+*.pyc

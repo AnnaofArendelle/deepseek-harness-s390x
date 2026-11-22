@@ -1,0 +1,33 @@
+--- a/src/serialize/strings.rs
++++ b/src/serialize/strings.rs
+@@ -167,7 +167,7 @@
+         const TOP_BITS: u64 = splat_u64(0x80);
+ 
+         // Convert bytes to a `u64` in native byte order
+-        let n = u64::from_ne_bytes(bytes);
++        let n = u64::from_le_bytes(bytes);
+ 
+         // 0x00..=0x1F -> 0xE0..=0xFF (top bit set).
+         // All other ASCII bytes -> 0x00..=0x5F (top bit unset).
+@@ -214,7 +214,7 @@
+         let ascii_escapes = StandardEscapeTable::get_escapes_mask(bytes);
+ 
+         // Convert bytes to a `u64` in native byte order
+-        let n = u64::from_ne_bytes(bytes);
++        let n = u64::from_le_bytes(bytes);
+ 
+         // 0xEF -> 0xFF (top bit set).
+         // All other non-ASCII bytes -> values with top bit unset.
+@@ -262,11 +262,7 @@
+                 // on some platforms. Ditto `leading_zeros`.
+                 if let Some(escapes_mask) = NonZeroU64::new(escapes_mask) {
+                     // At least 1 byte in this chunk needs escaping. Get index of that byte.
+-                    let found_bit_index = if cfg!(target_endian = "little") {
+-                        escapes_mask.trailing_zeros()
+-                    } else {
+-                        escapes_mask.leading_zeros()
+-                    };
++                    let found_bit_index = escapes_mask.trailing_zeros();
+                     let found_byte_index = (found_bit_index as usize) / 8;
+ 
+                     // SAFETY: `escapes_mask` is non-zero, so must have at least 1 bit set.

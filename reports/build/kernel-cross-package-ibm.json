@@ -1,0 +1,14 @@
+{
+  "world": "IBM-initial-cross-package",
+  "architecture": "s390x",
+  "landlockProbe": "landlock: partially enforced (older ABI)",
+  "partial": true,
+  "tests": [
+    "allowed-write",
+    "denied-read",
+    "systemd-user-unit",
+    "cgroup-v2",
+    "systemd-cgroup-descendant-cleanup"
+  ],
+  "status": "passed"
+}

@@ -1,12 +1,13 @@
 --- a/node_modules/napi-wasm/index.js
 +++ b/node_modules/napi-wasm/index.js
-@@ -1,3 +1,22 @@
+@@ -1,3 +1,23 @@
 +// WASM linear memory is little-endian on every host, including IBM s390x.
 +const bigEndianHost = new Uint8Array(new Uint16Array([1]).buffer)[0] === 0;
 +function littleEndianView(buffer, bytes, getter, setter) {
 +  const data = new DataView(buffer);
-+  return new Proxy({ byteLength: buffer.byteLength }, {
++  return new Proxy({}, {
 +    get(target, property) {
++      if (property === 'byteLength') return buffer.byteLength;
 +      if (typeof property === 'string' && /^\d+$/.test(property)) return data[getter](Number(property) * bytes, true);
 +      return Reflect.get(target, property);
 +    },
@@ -23,7 +24,7 @@
  const NAPI_OK = 0;
  const NAPI_INVALID_ARG = 1;
  const NAPI_STRING_EXPECTED = 3;
-@@ -146,7 +165,7 @@
+@@ -146,7 +166,7 @@
    _u32 = new Uint32Array();
    get u32() {
      if (this._u32.byteLength === 0) {
@@ -32,7 +33,7 @@
      }
  
      return this._u32;
-@@ -155,7 +174,7 @@
+@@ -155,7 +175,7 @@
    _i32 = new Int32Array();
    get i32() {
      if (this._i32.byteLength === 0) {
@@ -41,7 +42,7 @@
      }
  
      return this._i32;
-@@ -164,7 +183,7 @@
+@@ -164,7 +184,7 @@
    _u16 = new Uint16Array();
    get u16() {
      if (this._u16.byteLength === 0) {
@@ -50,7 +51,7 @@
      }
  
      return this._u16;
-@@ -173,7 +192,7 @@
+@@ -173,7 +193,7 @@
    _u64 = new BigUint64Array();
    get u64() {
      if (this._u64.byteLength === 0) {
@@ -59,7 +60,7 @@
      }
  
      return this._u64;
-@@ -182,7 +201,7 @@
+@@ -182,7 +202,7 @@
    _i64 = new BigInt64Array();
    get i64() {
      if (this._i64.byteLength === 0) {
@@ -68,7 +69,7 @@
      }
  
      return this._i64;
-@@ -191,7 +210,7 @@
+@@ -191,7 +211,7 @@
    _f64 = new Float64Array();
    get f64() {
      if (this._f64.byteLength === 0) {
@@ -79,13 +80,14 @@
      return this._f64;
 --- a/node_modules/napi-wasm/index.mjs
 +++ b/node_modules/napi-wasm/index.mjs
-@@ -1,3 +1,22 @@
+@@ -1,3 +1,23 @@
 +// WASM linear memory is little-endian on every host, including IBM s390x.
 +const bigEndianHost = new Uint8Array(new Uint16Array([1]).buffer)[0] === 0;
 +function littleEndianView(buffer, bytes, getter, setter) {
 +  const data = new DataView(buffer);
-+  return new Proxy({ byteLength: buffer.byteLength }, {
++  return new Proxy({}, {
 +    get(target, property) {
++      if (property === 'byteLength') return buffer.byteLength;
 +      if (typeof property === 'string' && /^\d+$/.test(property)) return data[getter](Number(property) * bytes, true);
 +      return Reflect.get(target, property);
 +    },
@@ -102,7 +104,7 @@
  const NAPI_OK = 0;
  const NAPI_INVALID_ARG = 1;
  const NAPI_STRING_EXPECTED = 3;
-@@ -146,7 +165,7 @@
+@@ -146,7 +166,7 @@
    _u32 = new Uint32Array();
    get u32() {
      if (this._u32.byteLength === 0) {
@@ -111,7 +113,7 @@
      }
  
      return this._u32;
-@@ -155,7 +174,7 @@
+@@ -155,7 +175,7 @@
    _i32 = new Int32Array();
    get i32() {
      if (this._i32.byteLength === 0) {
@@ -120,7 +122,7 @@
      }
  
      return this._i32;
-@@ -164,7 +183,7 @@
+@@ -164,7 +184,7 @@
    _u16 = new Uint16Array();
    get u16() {
      if (this._u16.byteLength === 0) {
@@ -129,7 +131,7 @@
      }
  
      return this._u16;
-@@ -173,7 +192,7 @@
+@@ -173,7 +193,7 @@
    _u64 = new BigUint64Array();
    get u64() {
      if (this._u64.byteLength === 0) {
@@ -138,7 +140,7 @@
      }
  
      return this._u64;
-@@ -182,7 +201,7 @@
+@@ -182,7 +202,7 @@
    _i64 = new BigInt64Array();
    get i64() {
      if (this._i64.byteLength === 0) {
@@ -147,7 +149,7 @@
      }
  
      return this._i64;
-@@ -191,7 +210,7 @@
+@@ -191,7 +211,7 @@
    _f64 = new Float64Array();
    get f64() {
      if (this._f64.byteLength === 0) {

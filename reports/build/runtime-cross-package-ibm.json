@@ -1,0 +1,14 @@
+{
+  "world": "IBM-cross-package",
+  "architecture": "s390x",
+  "tests": [
+    "native-pty-input-output-ansi",
+    "resize",
+    "Ctrl-C",
+    "exit",
+    "SQLite",
+    "Zstd",
+    "flock-contention"
+  ],
+  "status": "passed"
+}

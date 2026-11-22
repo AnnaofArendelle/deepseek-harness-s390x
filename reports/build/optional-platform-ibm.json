@@ -1,0 +1,26 @@
+{
+  "world": "IBM-native-s390x",
+  "architecture": "s390x",
+  "results": [
+    {
+      "name": "Codex",
+      "status": "unsupported-on-this-host",
+      "error": "file:///home/linux1/dsh-s390x-work/source/node_modules/.pnpm/@openai+codex@0.153.4/node_modules/@openai/codex/bin/codex.js:71\n  throw new Error(`Unsupported platform: ${platform} (${arch})`);\n        ^\n\nError: Unsupported platform: linux (s390x)\n    at file:///home/linux1/dsh-s390x-work/source/node_modules/.pnpm/@openai+codex@0.153.4/node_modules/@openai/codex/bin/codex.js:71:9\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.3\n"
+    },
+    {
+      "name": "Claude Code",
+      "status": "unsupported-on-this-host",
+      "error": "Native CLI binary for linux-s390x not found. Reinstall @anthropic-ai/claude-agent-sdk without --omit=optional, or set options.pathToClaudeCodeExecutable."
+    },
+    {
+      "name": "SenseVoice",
+      "status": "unsupported-on-this-host",
+      "error": "Could not find sherpa-onnx-node. Tried\n\n  ../build/Release/sherpa-onnx.node\n  ../build/Debug/sherpa-onnx.node\n  ./node_modules/sherpa-onnx-linux-s390x/sherpa-onnx.node\n  ../sherpa-onnx-linux-s390x/sherpa-onnx.node\n  ./sherpa-onnx.node\nPlease remember to set the following environment variable and try again:\nexport LD_LIBRARY_PATH=/home/linux1/node_modules/.pnpm/sherpa-onnx-node@1.13.8/node_modules/sherpa-onnx-linux-s390x:$LD_LIBRARY_PATH\n"
+    },
+    {
+      "name": "CUA driver",
+      "status": "unsupported-on-this-host",
+      "error": "Unsupported platform/arch combination: linux/s390x. Supported: darwin-{arm64,x64}, linux-{x64,arm64}-{gnu,musl}, win32-{x64,arm64}-msvc."
+    }
+  ]
+}

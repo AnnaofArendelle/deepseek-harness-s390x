@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Inventory actual installed packages, lifecycle scripts and native bytes. */
-import { readdirSync, readFileSync, lstatSync, realpathSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, openSync, readSync, closeSync, lstatSync, realpathSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, relative, join } from 'node:path';
 import { createHash } from 'node:crypto';
 const root = resolve(process.argv[2]);
@@ -15,10 +15,10 @@ function walk(dir) {
     if (stat.isDirectory()) { walk(file); continue; }
     if (name === 'package.json') {
       const p = JSON.parse(readFileSync(file, 'utf8'));
-      packages.push({ path: relative(root, file), name: p.name, version: p.version, os: p.os, cpu: p.cpu, scripts: Object.fromEntries(Object.entries(p.scripts ?? {}).filter(([k]) => /^(preinstall|install|postinstall|prepare)$/.test(k))) });
+      packages.push({ path: relative(root, file), name: p.name, version: p.version, license:p.license, os: p.os, cpu: p.cpu, scripts: Object.fromEntries(Object.entries(p.scripts ?? {}).filter(([k]) => /^(preinstall|install|postinstall|prepare)$/.test(k))) });
     }
     if (stat.size < 4) continue;
-    const data = readFileSync(file);
+    const data = Buffer.alloc(64), fd = openSync(file, 'r');try {readSync(fd,data,0,64,0)}finally{closeSync(fd)}
     const elf = data.subarray(0,4).equals(Buffer.from([127,69,76,70]));
     const wasm = data.subarray(0,4).equals(Buffer.from([0,97,115,109]));
     if (!elf && !wasm && !name.endsWith('.node')) continue;
@@ -27,12 +27,29 @@ function walk(dir) {
     seen.add(identity);
     let machine, byteOrder;
     if (elf) { byteOrder = data[5] === 2 ? 'BE' : 'LE'; machine = byteOrder === 'BE' ? data.readUInt16BE(18) : data.readUInt16LE(18); }
-    binaries.push({ path: relative(root, file), kind: elf ? 'ELF' : wasm ? 'WASM' : 'addon-other-format', machine, byteOrder, bytes: data.length, sha256: createHash('sha256').update(data).digest('hex') });
+    const hash=createHash('sha256'),chunk=Buffer.alloc(1048576),hashFd=openSync(file,'r');
+    try {let n;while((n=readSync(hashFd,chunk,0,chunk.length,null))>0)hash.update(chunk.subarray(0,n))}finally{closeSync(hashFd)}
+    binaries.push({ path: relative(root, file), kind: elf ? 'ELF' : wasm ? 'WASM' : 'addon-other-format', machine, byteOrder, bytes: stat.size, sha256: hash.digest('hex') });
   }
 }
 walk(root);
 const wrong = binaries.filter(b => b.kind === 'ELF' && (b.machine !== ({s390x:22,x64:62,arm64:183})[target]));
 const result = { target, packages, binaries, wrongArchitecture: wrong, note: 'Build trees may contain unused foreign prebuilds. Release assembly must remove foreign payloads and re-audit with --release.' };
+if(process.argv.includes('--release')) {
+ const reviewed=new Set([
+  'app/node_modules/@deepseek-ai/libreoffice-kit-wasm/assets/dsoffice.wasm',
+  'app/node_modules/@deepseek-ai/node-addon-system-linux-s390x/bin/glibc/process.node',
+  'app/node_modules/@deepseek-ai/node-addon-system-linux-s390x/bin/glibc/system.node',
+  'app/node_modules/@deepseek-ai/node-addon-system-linux-s390x/bin/landlock-run',
+  'app/node_modules/@deepseek-ai/node-addon-system-linux-s390x/bin/musl/system.node',
+  'app/node_modules/@img/sharp-libvips-linux-s390x/lib/libvips-cpp.so.8.18.7',
+  'app/node_modules/@img/sharp-linux-s390x/lib/sharp-linux-s390x-0.35.5.node',
+  'app/node_modules/@vscode/ripgrep-linux-s390x/bin/rg',
+  'app/node_modules/node-pty/build/Release/pty.node','node/bin/node',
+ ]);
+ const unknown=binaries.filter(binary=>!reviewed.has(binary.path));
+ if(unknown.length)throw Error(`Unreviewed native/WASM payloads: ${unknown.map(binary=>binary.path).join(', ')}`);
+}
 writeFileSync(output, JSON.stringify(result, null, 2)+'\n');
 console.log(JSON.stringify({ packages: packages.length, binaries: binaries.length, wrongArchitecture: wrong.length, output }));
 if (process.argv.includes('--release') && wrong.length) process.exitCode = 1;

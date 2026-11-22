@@ -1,0 +1,6 @@
+cross: built /home/user/文档/ChatGPT/dshs390x/build/upstream/native/system/packages/linux-s390x/bin/landlock-run
+cross: built /home/user/文档/ChatGPT/dshs390x/build/upstream/native/system/packages/linux-s390x/bin/glibc/system.node
+cross: built /home/user/文档/ChatGPT/dshs390x/build/upstream/native/system/packages/linux-s390x/bin/musl/system.node
+cross: built /home/user/文档/ChatGPT/dshs390x/build/upstream/native/system/packages/linux-s390x/bin/glibc/process.node
+{ name: '@deepseek-ai/node-addon-system-linux-s390x', count: 4 }
+cross: built /home/user/文档/ChatGPT/dshs390x/build/cross-probe/app/node_modules/node-pty/build/Release/pty.node

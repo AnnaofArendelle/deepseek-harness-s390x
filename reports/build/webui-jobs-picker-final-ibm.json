@@ -1,0 +1,6 @@
+{
+  "world": "external-x64-browser-to-IBM-final-package",
+  "tests": [],
+  "status": "failed",
+  "error": "locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('已结束 2', { exact: true }) to be visible\u001b[22m\n"
+}

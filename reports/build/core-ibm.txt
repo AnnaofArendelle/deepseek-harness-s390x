@@ -1,0 +1,32 @@
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+
+ RUN  v4.1.11 /home/linux1/dsh-s390x-work/source
+
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/session.spec.ts (58 tests) 224ms
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/index.spec.ts (20 tests) 164ms
+(node:39327) internal/test/binding: These APIs are for internal testing only. Do not use them.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓  thread-safe  packages/boot/hmr/tests/package-manifest-dispatch.spec.ts (32 tests) 2689ms
+(node:39342) internal/test/binding: These APIs are for internal testing only. Do not use them.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓  thread-safe  packages/boot/hmr/tests/package-manifest.spec.ts (39 tests) 324ms
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/local.spec.ts (10 tests | 3 skipped) 12364ms
+     ✓ persists cwd and environment across sends, scrubs secrets, and closes  2451ms
+     ✓ restores the controlled prompt after an in-shell PS1 override  1188ms
+     ✓ recognizes a foreground read opened through /dev/tty  1339ms
+     ✓ wraps the exact shell argv under confined policy and unregisters on reload  1300ms
+     ✓ signals a foreground command and kills a TERM-ignoring background descendant  1247ms
+     ✓ quiesces a disowned same-session descendant after the shell exits naturally  1442ms
+     ✓ cancels a slow-starting raw-mode foreground process with a real SIGINT  3394ms
+ ✓  thread-safe  packages/subprocess/subprocess-local/tests/process-inspector.spec.ts (13 tests) 9ms
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/session-buffer.spec.ts (16 tests) 666ms
+     ✓ retains the exact tail across the default 4 MiB scrollback limit while consuming active output  448ms
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/config.spec.ts (10 tests) 6ms
+ ✓  thread-safe  packages/terminal/terminal-bash/tests/sanitize.spec.ts (6 tests) 4ms
+
+ Test Files  9 passed (9)
+      Tests  201 passed | 3 skipped (204)
+   Start at  03:41:26
+   Duration  22.33s (transform 3.37s, setup 241ms, import 4.39s, tests 16.45s, environment 1ms)

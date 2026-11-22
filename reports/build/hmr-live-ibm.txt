@@ -1,0 +1,3 @@
+(node:40797) internal/test/binding: These APIs are for internal testing only. Do not use them.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"world":"IBM-or-s390x-guest","tests":["real-filesystem-watcher","plugin-code-replacement","manifest-export-cache-invalidation","old-resources-disposed","disable-disposal"],"trace":["start:a:1","stop:a","start:a2:1","stop:a2","start:a3:2","stop:a3","start:b:2","stop:b"],"status":"passed"}

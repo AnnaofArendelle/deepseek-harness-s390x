@@ -1,0 +1,12 @@
+{
+  "world": "IBM-s390x-provider-to-external-x64-Chromium",
+  "provider": "chrome-devtools-mcp",
+  "tests": [
+    "real-MCP-tool-catalog",
+    "navigate-external-browser",
+    "observed-CDP-page",
+    "Agent-disposal-removes-tools",
+    "externally-owned-browser-survives"
+  ],
+  "status": "passed"
+}

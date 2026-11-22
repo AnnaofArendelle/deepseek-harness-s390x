@@ -1,0 +1,9 @@
+{
+  "world": "IBM-installed-public-service",
+  "tests": [
+    "authenticated-Office-remote-render",
+    "multipart-PDF-12001-bytes",
+    "pdftotext-exact-fixture-content"
+  ],
+  "status": "passed"
+}

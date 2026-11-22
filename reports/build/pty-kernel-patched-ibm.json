@@ -1,0 +1,23 @@
+{
+  "world": "complete-kernel",
+  "architecture": "s390x",
+  "tests": [
+    {
+      "mode": "read",
+      "syscall": "3 0x0 0x3839e90 0x400 0x3ffb8de9c10 0x0 0x17feff0 0x3ffc61f9068 0x3ffb8d13834",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "select",
+      "syscall": "301 0x1 0x3fff206cfd8 0x0 0x0 0x0 0x0 0x3fff206ce38 0x3ffb551bea0",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "poll",
+      "syscall": "168 0x3ffa79781c0 0x1 0xffffffffffffffff 0x3ffa7fe9c10 0x0 0xffffffff 0x3ffee779d90 0x3ffa7f131f4",
+      "result": "real-stdin-wait-detected-and-resumed"
+    }
+  ],
+  "status": "passed",
+  "evidence": "Old installed source fails real poll(168) with unsigned -1; patched source passes read/select/poll and child teardown"
+}

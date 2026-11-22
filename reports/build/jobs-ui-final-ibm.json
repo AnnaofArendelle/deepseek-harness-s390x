@@ -1,0 +1,18 @@
+{
+  "world": "public-browser-IBM-final-package-real-model",
+  "tests": [
+    "actual-running-background-job-visible-in-session-panel",
+    "actual-expanded-stdout-with-Landlock-ABI-warning",
+    "two-click-UI-stop-observed",
+    "service-job-killed-SIGTERM",
+    "result-file-absent"
+  ],
+  "status": "passed",
+  "sessionId": "session-fefda57c-ecbf-405b-bacd-3de5bc1f71bb",
+  "evidence": {
+    "jobId": "bash-c73fa13219724ace",
+    "UI": "Running row, expanded UI_JOB_STARTED output, two stop clicks and termination row: signal: SIGTERM; cancelled by the user",
+    "independentCheck": "installed-status-now.json returned killed; filesystem test confirms ui-job-stopped-result.txt absent"
+  },
+  "note": "Initial exact text assertions failed because output includes the real kernel warning and settled row shows the subprocess termination summary. This record combines observed browser output and independent process/file checks."
+}

@@ -11,7 +11,7 @@ for (const name of ['koffi', 'lefthook']) {
   if (!yaml.includes(before)) throw new Error(`Expected reviewed install policy for ${name}`);
   yaml = yaml.replace(before, `  ${name}: false`);
 }
-yaml = yaml.replace('overrides:\n', 'overrides:\n  lightningcss: npm:lightningcss-wasm@1.33.0\n');
+yaml = yaml.replace('overrides:\n', "overrides:\n  'tsdown>rolldown': 1.2.7\n  lightningcss: npm:lightningcss-wasm@1.33.0\n");
 yaml = yaml.replace('patchedDependencies:\n', 'patchedDependencies:\n  lightningcss-wasm@1.33.0: patches/lightningcss-wasm@1.33.0.patch\n');
 writeFileSync(file, yaml);
 console.log('s390x: Koffi has no big-endian ABI; Linux uses the Node-API bridge. Lefthook checks run on x64. Other approved install scripts remain enabled.');

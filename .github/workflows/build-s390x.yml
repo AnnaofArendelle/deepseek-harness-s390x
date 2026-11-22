@@ -1,0 +1,114 @@
+name: Build s390x adaptation
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Official upstream commit, branch or tag (empty uses the lock)
+        required: false
+        type: string
+  schedule:
+    - cron: '23 3 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: s390x-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  select:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      shouldBuild: ${{ steps.source.outputs.shouldBuild }}
+      tag: ${{ steps.source.outputs.tag }}
+      prerelease: ${{ steps.source.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.3'
+      - id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_UPSTREAM_REF: ${{ inputs.upstream_ref }}
+        run: node scripts/select-upstream.mjs
+  javascript-and-s390x-simulation:
+    needs: select
+    if: needs.select.outputs.shouldBuild == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config
+      - env:
+          DSH_UPSTREAM_REF: ${{ needs.select.outputs.commit }}
+        run: bash scripts/ci-prepare-x64.sh > build-x64.log 2>&1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-javascript-and-simulated-s390x
+          path: |
+            build/ci/js-artifacts.tar.gz
+            build/ci/simulation-report.txt
+            build/ci/x64-check-report.txt
+            build-selection.json
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: x64-build-log
+          path: build-x64.log
+          retention-days: 14
+  cross-package:
+    needs: [select, javascript-and-s390x-simulation]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-javascript-and-simulated-s390x
+      - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu g++-s390x-linux-gnu binutils-s390x-linux-gnu make python3 xz-utils
+      - env:
+          DSH_UPSTREAM_REF: ${{ needs.select.outputs.commit }}
+        run: bash scripts/ci-cross-package.sh > build-cross.log 2>&1
+      - run: |
+          mkdir -p dist/checks
+          cp build/ci/simulation-report.txt dist/checks/
+          cp build/ci/x64-check-report.txt dist/checks/
+          cp build-selection.json dist/checks/
+          printf '%s\n' 'Cross compiled on x64. No s390x executable was run. Checks cover source, types, host simulation and ELF integrity only.' > dist/checks/target-runtime-not-tested.txt
+          tar -czf dist/checks.tar.gz -C dist checks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s390x-release-candidate
+          path: |
+            dist/deepseek-harness-*
+            dist/checks.tar.gz
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-build-log
+          path: build-cross.log
+          retention-days: 14
+  publish:
+    needs: [select, javascript-and-s390x-simulation, cross-package]
+    if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: s390x-release-candidate
+          path: dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.select.outputs.tag }}
+          RELEASE_PRERELEASE: ${{ needs.select.outputs.prerelease }}
+        run: node scripts/publish-release.mjs

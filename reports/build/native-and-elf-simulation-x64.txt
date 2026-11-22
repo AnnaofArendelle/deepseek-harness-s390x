@@ -1,0 +1,16 @@
+✔ captures fcntl errno and validates C integer arguments (17.647471ms)
+✔ failed execve returns errno and rejects embedded NUL (1.258769ms)
+✔ execve preserves fd 3, argv, Unicode and exact environment (129.681019ms)
+✔ descriptor flags round trip without changing unrelated flags (91.980276ms)
+✔ accepts ELF64 big-endian machine 22 with the declared Node-API symbols (22.771122ms)
+✔ rejects little-endian and foreign machine headers (17.146597ms)
+✔ rejects the wrong ELF file type, missing registration and truncated headers (20.704276ms)
+✔ rejects undeclared payloads and a nonexecutable launcher (9.322ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1241.35928

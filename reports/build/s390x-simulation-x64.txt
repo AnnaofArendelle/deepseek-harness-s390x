@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /home/user/文档/ChatGPT/dshs390x
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  13:54:34
+   Duration  813ms (transform 254ms, setup 0ms, import 323ms, tests 15ms, environment 0ms)

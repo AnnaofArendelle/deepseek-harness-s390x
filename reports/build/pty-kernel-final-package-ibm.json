@@ -1,0 +1,22 @@
+{
+  "world": "complete-kernel",
+  "architecture": "s390x",
+  "tests": [
+    {
+      "mode": "read",
+      "syscall": "3 0x0 0x25a60f0 0x400 0x3ff845e9c10 0x0 0x17feff0 0x3ffde2f96b8 0x3ff84513834",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "select",
+      "syscall": "301 0x1 0x3ffe02ed458 0x0 0x0 0x0 0x0 0x3ffe02ed2b8 0x3ff8641bea0",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "poll",
+      "syscall": "168 0x3ff7fb781c0 0x1 0xffffffffffffffff 0x3ff800e9c10 0x0 0xffffffff 0x3ffc9ff91f0 0x3ff800131f4",
+      "result": "real-stdin-wait-detected-and-resumed"
+    }
+  ],
+  "status": "passed"
+}

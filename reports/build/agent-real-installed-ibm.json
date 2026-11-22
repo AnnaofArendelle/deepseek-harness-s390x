@@ -1,0 +1,14 @@
+{
+  "world": "IBM-native-with-real-compatible-model",
+  "tests": [
+    "real-model-first-turn-file-write-and-read",
+    "real-model-second-turn-edit-and-background-start",
+    "background-completed-after-browser-disconnected",
+    "foreground-promoted-to-background-and-human-stop",
+    "real-model-child-agent-request-completed"
+  ],
+  "status": "failed",
+  "sessionId": "session-48a2d49f-e365-4ec4-95d6-0f9a4f33055a",
+  "backgroundId": "bash-4ed51f4f82874637",
+  "error": "page.evaluate: Error: Job WebSocket failed\n    at ws.onerror (eval at evaluate (:303:30), <anonymous>:5:24)\n    at rows (/home/user/文档/ChatGPT/dshs390x/tests/agent-real-flow.mjs:15:44)\n    at /home/user/文档/ChatGPT/dshs390x/tests/agent-real-flow.mjs:50:38"
+}

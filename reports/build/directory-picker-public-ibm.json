@@ -1,0 +1,7 @@
+{
+  "world": "external-x64-browser-to-IBM-final-package",
+  "tests": [
+    "actual-remote-directory-dialog-typed-listing-and-cancel"
+  ],
+  "status": "passed"
+}

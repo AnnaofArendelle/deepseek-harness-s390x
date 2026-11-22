@@ -1,0 +1,18 @@
+{
+  "world": "IBM-installed-service",
+  "tests": [
+    "actual-installed-plugin-code-executed",
+    "installed-plugin-source-edit-HMR-and-old-disposal",
+    "disable-releases-actual-resource",
+    "reenable-and-remove-release-resources"
+  ],
+  "status": "passed",
+  "trace": [
+    "start:v1",
+    "stop:v1",
+    "start:v2",
+    "stop:v2",
+    "start:v2",
+    "stop:v2"
+  ]
+}

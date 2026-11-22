@@ -1,0 +1,13 @@
+{
+  "world": "x64-real-browser-to-IBM-installed-s390x",
+  "tests": [
+    "model-settings-configured-key-indicator",
+    "UI-multi-file-upload",
+    "PNG-decoded-and-displayed",
+    "DOCX-preview-PDF.js-real-canvas-and-text",
+    "context-menu-original-file-download"
+  ],
+  "downloadedContent": "PUBLIC_FILE_OK",
+  "note": "Public network needs resolutionTimeoutMs=15000; initial 1-second default omitted remote actions. Office first preview failed; retry rendered real text/canvas.",
+  "status": "passed"
+}

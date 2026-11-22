@@ -1,0 +1,11 @@
+{
+  "world": "IBM-installed-real-compatible-model",
+  "model": "deepseek-v4.1-flash (third-party compatible endpoint)",
+  "tests": [
+    "actual-foreground-command-cancelled-and-result-not-written",
+    "real-DSH-child-agent-file-result-verified"
+  ],
+  "status": "passed-with-model-rate-limit",
+  "sessionId": "session-3296ab0e-3715-4dd9-a0c8-1d5a3ba3650f",
+  "note": "The first assertion ran before the asynchronous child finished. Actual child event log includes write/read/uname and file verified; endpoint subsequently hit its 8/minute rate limit."
+}

@@ -1,0 +1,10 @@
+{
+  "world": "IBM-installed-service+public-browser",
+  "tests": [
+    "authenticated-file-upload",
+    "workspace-file-read",
+    "child-agent-file-readback",
+    "plugin-list-210"
+  ],
+  "status": "passed"
+}

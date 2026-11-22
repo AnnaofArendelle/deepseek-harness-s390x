@@ -1,0 +1,11 @@
+{
+  "world": "IBM-installed-public-service",
+  "tests": [
+    "pnpm-local-bundle-install",
+    "bundle-activation-applied",
+    "disable-applied",
+    "remove-pnpm-and-profile-applied"
+  ],
+  "status": "passed",
+  "note": "Separate live watcher test verifies actual code lifecycle; this fixture had no persistent marker because service scrubs model environment."
+}

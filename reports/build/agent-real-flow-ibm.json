@@ -1,0 +1,14 @@
+{
+  "world": "IBM-native-with-real-compatible-model",
+  "tests": [
+    "real-model-first-turn-file-write-and-read",
+    "real-model-second-turn-edit-and-background-start",
+    "background-completed-after-browser-disconnected",
+    "foreground-promoted-to-background-and-human-stop",
+    "real-model-child-agent-request-completed",
+    "real-model-foreground-cancellation-and-job-cleanup"
+  ],
+  "status": "passed",
+  "sessionId": "session-dc4ffc18-6fa1-4e4b-adb2-d95c4a4f605e",
+  "backgroundId": "bash-7fd8c30f16f54a23"
+}

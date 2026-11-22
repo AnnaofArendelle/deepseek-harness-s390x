@@ -370,6 +370,21 @@ index 8bf58746..1257ca2a 100644
    const esm = requireInternal('internal/modules/esm/loader') as {
      getOrInitializeCascadedLoader(): NativeAccess['esmLoader']
    }
+diff --git a/packages/boot/hmr/tests/package-manifest.spec.ts b/packages/boot/hmr/tests/package-manifest.spec.ts
+index 52847f1c..87bb985a 100644
+--- a/packages/boot/hmr/tests/package-manifest.spec.ts
++++ b/packages/boot/hmr/tests/package-manifest.spec.ts
+@@ -10,7 +10,9 @@ import { afterEach, describe, expect, it } from 'vitest'
+ import { PackageManifests } from '../src/package-manifest.ts'
+ 
+ const require = createRequire(import.meta.url)
+-const addon = require('node-addon-require-builtin') as { requireBuiltin(id: string): unknown }
++const addon = process.arch === 's390x'
++  ? { requireBuiltin: (id: string): unknown => require(id === 'internal/bootstrap/realm' ? 'internal/test/binding' : id) }
++  : require('node-addon-require-builtin') as { requireBuiltin(id: string): unknown }
+ const reader = addon.requireBuiltin('internal/modules/package_json_reader') as {
+   read: (path: string, options?: { isESM: boolean; base: string; specifier: string }) => { exists: boolean; type: string }
+   getPackageScopeConfig: (url: string) => { exists: boolean; type: string; pjsonPath: string }
 diff --git a/packages/bundle/web-app/README.md b/packages/bundle/web-app/README.md
 index 1d8bb92a..09206f1c 100644
 --- a/packages/bundle/web-app/README.md
@@ -414,6 +429,262 @@ index 3152e085..75be8229 100644
      if (options.port !== undefined && !/^\d+$/.test(options.port)) {
        program.error(`error: --port must be a number, got ${JSON.stringify(options.port)}`)
      }
+diff --git a/packages/bundle/web-app/tests/startup.spec.ts b/packages/bundle/web-app/tests/startup.spec.ts
+index 9a7a01a5..f0fc8771 100644
+--- a/packages/bundle/web-app/tests/startup.spec.ts
++++ b/packages/bundle/web-app/tests/startup.spec.ts
+@@ -115,14 +115,10 @@ describe('web command-line provider', () => {
+     expect(observed.exits).toEqual([])
+   })
+ 
+-  // The webserver suite owns the wildcard spellings; the CLI only has to
+-  // refuse them by address value before any consumer activates.
+-  it.each(['0.0.0.0', '::ffff:0.0.0.0'])('rejects wildcard --host %s before activating consumers', async (host) => {
++  it.each(['0.0.0.0', '::ffff:0.0.0.0'])('accepts wildcard --host %s for deployment', async (host) => {
+     const { values, observed } = await bootProvider(['--host', host])
+-    expect(observed.out).toContain(`error: --host ${host} is an unspecified (wildcard) address`)
+-    expect(values).toBeUndefined()
+-    expect(observed.readerConfig).toBeUndefined()
+-    expect(observed.exits).toEqual([1])
++    expect(values?.host).toBe(host)
++    expect(observed.exits).toEqual([])
+   })
+ 
+   it('leaves deployment values to each consumer when flags omit them', async () => {
+diff --git a/packages/document/office-kit/src/index.ts b/packages/document/office-kit/src/index.ts
+index aaa8b06b..0d13e019 100644
+--- a/packages/document/office-kit/src/index.ts
++++ b/packages/document/office-kit/src/index.ts
+@@ -12,6 +12,7 @@ import type {} from '@deepseek-ai/dsh-session'
+ import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
+ import { brandString } from '@deepseek-ai/dsh-brand'
+ import { resolveKitModule } from './locate.ts'
++import { createSystemConverter } from './system-libreoffice.ts'
+ import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+ import { OfficeKitError } from './errors.ts'
+ import type { OfficeKitGeneration, OfficeSourceKey } from './identity.ts'
+@@ -344,6 +345,10 @@ export class OfficeKit extends TypertRemoteService {
+   }
+ 
+   private async importKit(): Promise<LoadedKit> {
++    if (process.platform === 'linux' && process.arch === 's390x') {
++      this.ctx.logger.info('s390x Office uses system LibreOffice and Poppler; the pinned WASM engine requires little-endian hosts.')
++      return { createConverter: createSystemConverter, resolveEnginePackage: () => { throw new Error('System Office does not load engine packages') } }
++    }
+     const kit = resolveKitModule(() => import.meta.resolve('@deepseek-ai/libreoffice-kit'))
+     if (kit.kind === 'missing') throw this.unavailableKit('LibreOffice Kit is not installed.', kit.error)
+     let createConverter: KitModule['createConverter']
+diff --git a/packages/document/office-kit/src/system-libreoffice.ts b/packages/document/office-kit/src/system-libreoffice.ts
+new file mode 100644
+index 00000000..1f9b15e3
+--- /dev/null
++++ b/packages/document/office-kit/src/system-libreoffice.ts
+@@ -0,0 +1,205 @@
++/** Explicit s390x provider: system LibreOffice via a private UNO pipe, with Poppler rasterization. */
++import { spawn } from 'node:child_process'
++import { createHash, randomUUID } from 'node:crypto'
++import { constants } from 'node:fs'
++import { access, chmod, copyFile, lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
++import { tmpdir } from 'node:os'
++import { basename, extname, isAbsolute, join } from 'node:path'
++import { pathToFileURL } from 'node:url'
++import type { Converter, ConverterOptions, RenderImagesRequest, RenderImagesResult, RenderResult } from '@deepseek-ai/libreoffice-kit'
++
++const UNO = String.raw`
++import sys,json,time,uno,zipfile,os
++from com.sun.star.beans import PropertyValue
++from com.sun.star.connection import NoConnectException
++def prop(name,value):
++ p=PropertyValue();p.Name=name;p.Value=value;return p
++pipe,request=sys.argv[1],json.loads(sys.argv[2])
++if os.path.splitext(request['input'])[1].lower() in ('.docx','.xlsx','.pptx','.odt','.ods','.odp'):
++ with zipfile.ZipFile(request['input']) as archive:
++  entries=archive.infolist()
++  if len(entries)>request['maxArchiveEntries'] or sum(e.file_size for e in entries)>request['maxUncompressedBytes']:
++   raise RuntimeError('Office archive exceeds the configured limits')
++  if any(e.flag_bits&1 for e in entries):raise RuntimeError('Encrypted Office archive is unsupported')
++resolver=uno.getComponentContext().ServiceManager.createInstanceWithContext('com.sun.star.bridge.UnoUrlResolver',uno.getComponentContext())
++deadline=time.monotonic()+30
++while True:
++ try:
++  ctx=resolver.resolve('uno:pipe,name='+pipe+';urp;StarOffice.ComponentContext');break
++ except NoConnectException:
++  if time.monotonic()>deadline:raise
++  time.sleep(0.1)
++desktop=ctx.ServiceManager.createInstanceWithContext('com.sun.star.frame.Desktop',ctx)
++doc=None
++try:
++ doc=desktop.loadComponentFromURL(uno.systemPathToFileUrl(request['input']), '_blank',0,
++  (prop('Hidden',True),prop('ReadOnly',False),prop('MacroExecutionMode',0),prop('UpdateDocMode',0)))
++ if doc is None:raise RuntimeError('LibreOffice could not load this document')
++ calc=doc.supportsService('com.sun.star.sheet.SpreadsheetDocument')
++ if request.get('sheet') is not None:
++  if not calc:raise RuntimeError('Sheet selection requires a spreadsheet')
++  sheets=doc.getSheets();name=request['sheet']
++  if not sheets.hasByName(name):raise RuntimeError('Worksheet does not exist')
++  selected=sheets.getByName(name)
++  for n in sheets.getElementNames():sheets.getByName(n).IsVisible=(n==name)
++  doc.getCurrentController().setActiveSheet(selected)
++  if request.get('range') is not None:selected.setPrintAreas((selected.getCellRangeByName(request['range']).getRangeAddress(),))
++ elif request.get('range') is not None:raise RuntimeError('Range selection requires a worksheet name')
++ if request.get('recalculate'):
++  if not calc:raise RuntimeError('Recalculation requires a spreadsheet')
++  doc.calculateAll()
++ filters={'pdf':'calc_pdf_Export' if calc else 'impress_pdf_Export' if doc.supportsService('com.sun.star.presentation.PresentationDocument') else 'writer_pdf_Export',
++  'docx':'Office Open XML Text','odt':'writer8','doc':'MS Word 97','txt':'Text (encoded)',
++  'xlsx':'Calc MS Excel 2007 XML','ods':'calc8','xls':'MS Excel 97',
++  'pptx':'Impress MS PowerPoint 2007 XML','odp':'impress8','ppt':'MS PowerPoint 97','csv':'Text - txt - csv (StarCalc)'}
++ fmt=request['format']
++ if fmt=='csv' and calc and doc.getSheets().getCount()>1 and request.get('sheet') is None:raise RuntimeError('CSV export of multiple worksheets requires a sheet')
++ options=[prop('FilterName',filters[fmt]),prop('Overwrite',True)]
++ if fmt=='pdf':options.append(prop('FilterData',(prop('ExportBookmarks',False),prop('ReduceImageResolution',True),prop('MaxImageResolution',request['maxImageResolution']))))
++ if fmt=='csv':options.append(prop('FilterOptions','44,34,76,1'))
++ doc.storeToURL(uno.systemPathToFileUrl(request['output']),tuple(options))
++finally:
++ if doc is not None:doc.close(True)
++ desktop.terminate()
++`
++
++function failure(code: string, message: string): Error & { code: string } {
++  return Object.assign(new Error(message), { code })
++}
++
++/** Preserve the kit Converter API while selecting this provider before any WASM operation. */
++export async function createSystemConverter(options: ConverterOptions = {}): Promise<Converter> {
++  for (const path of ['/usr/bin/libreoffice', '/usr/bin/python3', '/usr/bin/pdfinfo', '/usr/bin/pdftoppm']) {
++    try { await access(path, constants.X_OK) }
++    catch { throw failure('unavailable', 's390x Office requires system LibreOffice, python3-uno and poppler-utils. See the installation README.') }
++  }
++  const lifetime = new AbortController()
++  const pending = new Set<Promise<unknown>>()
++  let tail = Promise.resolve()
++  async function command(executable: string, args: string[], signal: AbortSignal): Promise<string> {
++    signal.throwIfAborted()
++    const child = spawn(executable, args, { stdio: ['ignore', 'pipe', 'pipe'], detached: true,
++      env: { ...process.env, SAL_DISABLE_PRINTERLIST: '1', SAL_DISABLE_DEFAULTPRINTER: '1' } })
++    let stdout = '', stderr = ''
++    child.stdout.on('data', (bytes: Buffer) => { stdout = (stdout + bytes.toString()).slice(-65536) })
++    child.stderr.on('data', (bytes: Buffer) => { stderr = (stderr + bytes.toString()).slice(-65536) })
++    const stop = (): void => { if (child.pid !== undefined) { try { process.kill(-child.pid, 'SIGKILL') } catch {} } }
++    signal.addEventListener('abort', stop, { once: true })
++    if (signal.aborted) stop()
++    try {
++      await new Promise<void>((resolve, reject) => {
++        child.once('error', reject)
++        child.once('close', code => code === 0 ? resolve() : reject(failure('failed', `${basename(executable)} failed (${code}): ${stderr}`)))
++      })
++      signal.throwIfAborted()
++      return stdout
++    } finally { signal.removeEventListener('abort', stop) }
++  }
++  async function exclusiveOutput(path: string, from: string): Promise<void> {
++    const info = await lstat(from)
++    if (!info.isFile() || info.size === 0) throw failure('invalid-output', 'LibreOffice did not produce a regular nonempty output')
++    if (info.size > (options.maxOutputBytes ?? 104857600)) throw failure('output-too-large', 'Office output exceeds the byte limit')
++    await copyFile(from, path, constants.COPYFILE_EXCL)
++    await chmod(path, 0o600)
++  }
++  async function convertFile(input: string, output: string, scratch: string, signal: AbortSignal,
++    sheet?: string, range?: string, recalculate = false): Promise<void> {
++    const pipe = `dsh_${randomUUID().replaceAll('-', '')}`
++    const profile = pathToFileURL(join(scratch, 'profile')).href
++    const officeAbort = new AbortController()
++    const officeSignal = AbortSignal.any([signal, officeAbort.signal])
++    const office = command('/usr/bin/libreoffice', [`-env:UserInstallation=${profile}`, '--headless', '--nologo', '--nodefault', '--norestore', '--nofirststartwizard',
++      `--accept=pipe,name=${pipe};urp;StarOffice.ServiceManager`], officeSignal)
++    void office.catch(() => undefined)
++    try {
++      await command('/usr/bin/python3', ['-c', UNO, pipe, JSON.stringify({ input, output, format: extname(output).slice(1), sheet, range, recalculate,
++        maxArchiveEntries: options.maxArchiveEntries ?? 20000, maxUncompressedBytes: options.maxUncompressedBytes ?? 536870912,
++        maxImageResolution: options.maxImageResolution ?? 144 })], signal)
++    } finally { officeAbort.abort(); await office.catch(() => undefined) }
++  }
++  async function pages(pdf: string, signal: AbortSignal): Promise<number> {
++    const count = /\bPages:\s+(\d+)/.exec(await command('/usr/bin/pdfinfo', [pdf], signal))
++    if (count === null) throw failure('invalid-output', 'PDF page count is missing')
++    return Number(count[1])
++  }
++  async function operation<T>(inputPath: string, caller: AbortSignal | undefined, run: (scratch: string, signal: AbortSignal) => Promise<T>): Promise<T> {
++    if (!isAbsolute(inputPath)) throw new TypeError('Office input must be absolute')
++    const previous = tail
++    const task = (async () => {
++      await previous
++      const signal = AbortSignal.any([lifetime.signal, ...(caller === undefined ? [] : [caller]), AbortSignal.timeout(options.timeoutMs ?? 120000)])
++      signal.throwIfAborted()
++      const info = await lstat(inputPath)
++      if (!info.isFile()) throw failure('invalid-document', 'Office input must be a regular file')
++      if (info.size > (options.maxInputBytes ?? 52428800)) throw failure('input-too-large', 'Office input exceeds the byte limit')
++      const scratch = await mkdtemp(join(tmpdir(), 'dsh-system-office-'))
++      try { return await run(scratch, signal) }
++      catch (error) { signal.throwIfAborted(); throw error }
++      finally { await rm(scratch, { recursive: true, force: true }) }
++    })()
++    tail = task.then(() => undefined, () => undefined)
++    pending.add(task)
++    try { return await task } finally { pending.delete(task) }
++  }
++  function convert(request: { inputPath: string; outputPath: string; sheet?: string }, signal?: AbortSignal, recalculate = false): Promise<RenderResult> {
++    return operation(request.inputPath, signal, async (scratch, combined) => {
++      if (!isAbsolute(request.outputPath)) throw new TypeError('Office output must be absolute')
++      const format = extname(request.outputPath).slice(1).toLowerCase()
++      const inputFormat = extname(request.inputPath).slice(1).toLowerCase()
++      const formats = ['doc', 'docx', 'odt'].includes(inputFormat) ? ['pdf', 'docx', 'odt', 'txt']
++        : ['xls', 'xlsx', 'ods'].includes(inputFormat) ? ['pdf', 'xlsx', 'ods', 'csv']
++        : ['ppt', 'pptx', 'odp'].includes(inputFormat) ? ['pdf', 'pptx', 'odp'] : []
++      if (!formats.includes(format) || recalculate && (!['xls', 'xlsx', 'ods'].includes(inputFormat) || !['xlsx', 'ods'].includes(format))) throw failure('unsupported-format', 'Unsupported Office conversion')
++      try { await lstat(request.outputPath); throw failure('output-exists', 'Office output must not exist') }
++      catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
++      const temporary = join(scratch, `output.${format}`)
++      await convertFile(request.inputPath, temporary, scratch, combined, request.sheet, undefined, recalculate)
++      const pageCount = format === 'pdf' ? await pages(temporary, combined) : undefined
++      await exclusiveOutput(request.outputPath, temporary)
++      return { backend: 'native', missingFonts: [], ...(pageCount === undefined ? {} : { pageCount }) }
++    })
++  }
++  const converter: Converter = {
++    backend: 'native', render: (request, signal) => convert(request, signal),
++    convert: (request, signal) => convert(request, signal), recalculate: (request, signal) => convert(request, signal, true),
++    async renderImages(request: RenderImagesRequest, signal?: AbortSignal): Promise<RenderImagesResult> {
++      return operation(request.inputPath, signal, async (scratch, combined) => {
++        if (!isAbsolute(request.outputDir)) throw new TypeError('Office image directory must be absolute')
++        const dpi = request.dpi ?? 144
++        if (!Number.isInteger(dpi) || dpi < 24 || dpi > 600) throw new RangeError('DPI must be between 24 and 600')
++        const pdf = extname(request.inputPath).toLowerCase() === '.pdf' ? request.inputPath : join(scratch, 'render.pdf')
++        if (pdf !== request.inputPath) await convertFile(request.inputPath, pdf, scratch, combined, request.sheet, request.range)
++        const pageCount = await pages(pdf, combined)
++        const selected = request.pages === undefined || request.pages === 'all' ? Array.from({ length: pageCount }, (_, i) => i + 1) : [...request.pages]
++        if (selected.length === 0 || selected.length > (request.maxPages ?? 100)) throw failure('output-too-large', 'Office image count exceeds the limit')
++        if (selected.some(page => !Number.isInteger(page) || page < 1 || page > pageCount) || new Set(selected).size !== selected.length) throw failure('invalid-document', 'Invalid or repeated page selection')
++        await mkdir(request.outputDir)
++        try {
++          const images = []
++          let totalBytes = 0
++          for (const [index, page] of selected.entries()) {
++            const metadata = await command('/usr/bin/pdfinfo', ['-f', String(page), '-l', String(page), pdf], combined)
++            const size = /(?:Page\s+\d+\s+size|Page size):\s*([\d.]+) x ([\d.]+) pts/.exec(metadata)
++            if (size === null) throw failure('invalid-output', 'PDF page dimensions are missing')
++            const expectedWidth = Math.ceil(Number(size[1]) * dpi / 72), expectedHeight = Math.ceil(Number(size[2]) * dpi / 72)
++            if (expectedWidth * expectedHeight > (request.maxPixels ?? 16777216) || Math.max(expectedWidth, expectedHeight) > (request.maxDimension ?? 8192)) throw failure('output-too-large', 'Office raster dimensions exceed the limit')
++            const prefix = join(request.outputDir, `page-${page}`)
++            await command('/usr/bin/pdftoppm', ['-f', String(page), '-l', String(page), '-r', String(dpi), '-singlefile', '-png', pdf, prefix], combined)
++            const path = `${prefix}.png`, bytes = await readFile(path)
++            const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20)
++            totalBytes += bytes.length
++            if (width * height > (request.maxPixels ?? 16777216) || Math.max(width, height) > (request.maxDimension ?? 8192) || totalBytes > (options.maxOutputBytes ?? 104857600)) throw failure('output-too-large', 'Office raster output exceeds the limit')
++            images.push({ index, page, ...(request.sheet === undefined ? {} : { sheet: request.sheet }), ...(request.range === undefined ? {} : { range: request.range }), path, width, height, byteLength: bytes.length,
++              rectangle: { x: 0, y: 0, width: width * 96 / dpi, height: height * 96 / dpi } })
++          }
++          const result: RenderImagesResult = { schemaVersion: 1, backend: 'native', rasterEngine: 'libreoffice', source: 'saved', inputPath: request.inputPath,
++            sourceSha256: createHash('sha256').update(await readFile(request.inputPath)).digest('hex'), dpi, pageCount, images, missingFonts: [] }
++          await writeFile(join(request.outputDir, 'manifest.json'), JSON.stringify(result), { flag: 'wx', mode: 0o600 })
++          return result
++        } catch (error) { await rm(request.outputDir, { recursive: true, force: true }); throw error }
++      })
++    },
++    async dispose() { lifetime.abort(); await Promise.allSettled([...pending]) },
++  }
++  return converter
++}
 diff --git a/packages/host/webserver/README.md b/packages/host/webserver/README.md
 index 5288a103..520e48cf 100644
 --- a/packages/host/webserver/README.md
@@ -451,6 +722,49 @@ index 3ed162f3..fa2be13d 100644
      if (host === undefined) {
        throw new Error(`webserver: bind address ${JSON.stringify(this.config.host)} carries an interface zone id, which no URL can express`)
      }
+diff --git a/packages/host/webserver/tests/webserver.spec.ts b/packages/host/webserver/tests/webserver.spec.ts
+index 0ebf4abe..791950c3 100644
+--- a/packages/host/webserver/tests/webserver.spec.ts
++++ b/packages/host/webserver/tests/webserver.spec.ts
+@@ -527,7 +527,7 @@ describe('real Loader composition', () => {
+     }
+   })
+ 
+-  it('rejects every wildcard spelling by address value, not by text', () => {
++  it('accepts wildcard address literals and rejects nonliteral bind hosts', () => {
+     // Every spelling node:net accepts that parses to the unspecified address:
+     // IPv4 any, IPv6 any in long and short forms, IPv4-compatible, and the
+     // IPv4-mapped forms of IPv4 any, with or without a zone.
+@@ -536,9 +536,7 @@ describe('real Loader composition', () => {
+       '::ffff:0.0.0.0', '::ffff:0:0', '::ffff:0000:0000', '0:0:0:0:0:ffff:0:0',
+       '0:0:0:0:0:ffff:0.0.0.0', '::ffff:0.0.0.0%eth0',
+     ]) {
+-      expect(() => HttpServer.Config({ host, port: 0 })).toThrow(
+-        /is an unspecified \(wildcard\) address, which is not supported/,
+-      )
++      expect(HttpServer.Config({ host, port: 0 }).host).toBe(host)
+     }
+     for (const host of ['localhost', 'example.com', '*', '[::]', '[fd00::1]', '10.1.2.3/8']) {
+       expect(() => HttpServer.Config({ host, port: 0 }))
+@@ -546,13 +544,11 @@ describe('real Loader composition', () => {
+     }
+   })
+ 
+-  it('denies the IPv4-mapped wildcard through the real plugin load, not only the predicate', async () => {
+-    // The Loader is nontransactional: a rejected config leaves a FAILED fiber
+-    // whose await carries the schema error rather than rejecting loader.await().
+-    const denied = await loadComposition(0, false, '::ffff:0.0.0.0')
+-    const fiber = webserverFiber(denied)
+-    expect(fiber?.state).toBe(FiberState.FAILED)
+-    await expect(fiber?.await()).rejects.toThrow(/is an unspecified \(wildcard\) address/)
++  it('serves a wildcard through the real Loader with a connectable loopback origin', async () => {
++    const loaded = await loadComposition(0, false, '0.0.0.0')
++    const fiber = webserverFiber(loaded)
++    await fiber?.await()
++    expect(loaded.webServer.getOrigin()).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/)
+   })
+ 
+   it('classifies loopback bind addresses from the parsed value, including mapped and zone forms', () => {
 diff --git a/packages/subprocess/subprocess-local/README.md b/packages/subprocess/subprocess-local/README.md
 index 6ede37c8..7237a658 100644
 --- a/packages/subprocess/subprocess-local/README.md
@@ -532,7 +846,7 @@ index 9dd98d13..5d50fc19 100644
 +  }
 +}
 diff --git a/packages/subprocess/subprocess-local/src/process-inspector.ts b/packages/subprocess/subprocess-local/src/process-inspector.ts
-index e357fd68..8dcdabbb 100644
+index e357fd68..e2d1e118 100644
 --- a/packages/subprocess/subprocess-local/src/process-inspector.ts
 +++ b/packages/subprocess/subprocess-local/src/process-inspector.ts
 @@ -2,6 +2,7 @@
@@ -543,7 +857,22 @@ index e357fd68..8dcdabbb 100644
  import type { SubprocessTerminalSignal } from '@deepseek-ai/dsh-subprocess'
  import { createWindowsProcessInspector } from './windows-inspector.ts'
  
-@@ -281,7 +282,7 @@ function readMemory(
+@@ -253,7 +254,13 @@ function readSyscall(internals: ProcessInspectorInternals, pid: number, tid: num
+     if (text === 'running' || text.startsWith('-1 ')) return undefined
+     const fields = text.split(/\s+/)
+     const number = Number(fields[0])
+-    const args = fields.slice(1, 7).map(field => Number.parseInt(field, 16))
++    const args = fields.slice(1, 7).map(field => {
++      if (!/^0x[0-9a-f]+$/iu.test(field)) return NaN
++      const value = BigInt(field)
++      if (value > 0xffffffffffffffffn) return NaN
++      // /proc prints signed timeout/unused registers as unsigned 64-bit hex.
++      return Number(value <= BigInt(Number.MAX_SAFE_INTEGER) ? value : BigInt.asIntN(64, value))
++    })
+     if (!Number.isSafeInteger(number) || args.some(value => !Number.isSafeInteger(value))) return undefined
+     return { number, args }
+   } catch (_unreadableSyscall) {
+@@ -281,7 +288,7 @@ function readMemory(
  }
  
  function fdSetHasStdin(internals: ProcessInspectorInternals, pid: number, address: number): boolean {
@@ -552,7 +881,7 @@ index e357fd68..8dcdabbb 100644
  }
  
  function pollHasStdin(
-@@ -294,7 +295,9 @@ function pollHasStdin(
+@@ -294,7 +301,9 @@ function pollHasStdin(
    const memory = readMemory(internals, pid, address, Math.min(count, 1024) * 8)
    if (memory === undefined) return false
    for (let offset = 0; offset + 8 <= memory.length; offset += 8) {
@@ -563,7 +892,7 @@ index e357fd68..8dcdabbb 100644
    }
    return false
  }
-@@ -322,6 +325,7 @@ interface SyscallTable {
+@@ -322,6 +331,7 @@ interface SyscallTable {
  const SYSCALLS: Partial<Record<NodeJS.Architecture, SyscallTable>> = {
    x64: { read: 0, select: 23, pselect: 270, poll: 7, ppoll: 271, epollWait: 232, epollPwait: 281 },
    arm64: { read: 63, pselect: 72, ppoll: 73, epollPwait: 22 },
@@ -571,21 +900,62 @@ index e357fd68..8dcdabbb 100644
  }
  
  const SUPPORTED_SYSCALL_TABLES = Object.values(SYSCALLS)
+diff --git a/packages/subprocess/subprocess-local/tests/process-inspector.spec.ts b/packages/subprocess/subprocess-local/tests/process-inspector.spec.ts
+index c5d5f1eb..b1fd2db5 100644
+--- a/packages/subprocess/subprocess-local/tests/process-inspector.spec.ts
++++ b/packages/subprocess/subprocess-local/tests/process-inspector.spec.ts
+@@ -1,4 +1,5 @@
+ import { describe, expect, it } from 'vitest'
++import { endianness } from 'node:os'
+ import {
+   createProcessInspector,
+   linuxProcessGroupLiveMember,
+@@ -214,18 +215,25 @@ describe('Linux process inspector', () => {
+     fake.files.set('/proc/101/task/101/syscall', '-1 0x0')
+     fake.files.set('/proc/101/task/102/syscall', syscall(0, 0))
+     expect(inspector.isStdinWaiting(77, 100)).toBe(true)
++    fake.files.set('/proc/101/task/102/syscall', syscall(3, 0))
++    expect(createProcessInspector('linux', 's390x', fake.internals).isStdinWaiting(77, 100)).toBe(true)
+     fake.files.set('/proc/101/task/102/syscall', syscall(63, 0))
+     expect(inspector.isStdinWaiting(77, 100)).toBe(true)
+ 
+     fake.files.set('/proc/101/task/102/syscall', syscall(270, 1, 0x10))
+-    const fdSet = Buffer.alloc(0x11)
+-    fdSet[0x10] = 1
++    const fdSet = Buffer.alloc(0x18)
++    fdSet[0x10 + (endianness() === 'BE' ? 7 : 0)] = 1
+     fake.memories.set('/proc/101/mem', fdSet)
+     expect(inspector.isStdinWaiting(77, 100)).toBe(true)
+ 
+     const poll = Buffer.alloc(8)
+-    poll.writeInt32LE(0, 0)
+-    poll.writeInt16LE(1, 4)
++    if (endianness() === 'BE') { poll.writeInt32BE(0, 0); poll.writeInt16BE(1, 4) }
++    else { poll.writeInt32LE(0, 0); poll.writeInt16LE(1, 4) }
++    fake.files.set('/proc/101/task/102/syscall', '168 0x20 0x1 0xffffffffffffffff 0x0 0x0 0xffffffff')
++    fake.memories.set('/proc/101/mem', Buffer.concat([Buffer.alloc(0x20), poll]))
++    expect(createProcessInspector('linux', 's390x', fake.internals).isStdinWaiting(77, 100)).toBe(true)
++    fake.files.set('/proc/101/task/102/syscall', '168 0x20000000000000 0x1 0x0 0x0 0x0 0x0')
++    expect(createProcessInspector('linux', 's390x', fake.internals).isStdinWaiting(77, 100)).toBe(false)
+     fake.files.set('/proc/101/task/102/syscall', syscall(7, 0x20, 1))
+     fake.memories.set('/proc/101/mem', Buffer.concat([Buffer.alloc(0x20), poll]))
+     expect(inspector.isStdinWaiting(77, 100)).toBe(true)
 diff --git a/patches/lightningcss-wasm@1.33.0.patch b/patches/lightningcss-wasm@1.33.0.patch
 new file mode 100644
-index 00000000..2bef3cf3
+index 00000000..c515fd8a
 --- /dev/null
 +++ b/patches/lightningcss-wasm@1.33.0.patch
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,160 @@
 +--- a/node_modules/napi-wasm/index.js
 ++++ b/node_modules/napi-wasm/index.js
-+@@ -1,3 +1,22 @@
++@@ -1,3 +1,23 @@
 ++// WASM linear memory is little-endian on every host, including IBM s390x.
 ++const bigEndianHost = new Uint8Array(new Uint16Array([1]).buffer)[0] === 0;
 ++function littleEndianView(buffer, bytes, getter, setter) {
 ++  const data = new DataView(buffer);
-++  return new Proxy({ byteLength: buffer.byteLength }, {
+++  return new Proxy({}, {
 ++    get(target, property) {
+++      if (property === 'byteLength') return buffer.byteLength;
 ++      if (typeof property === 'string' && /^\d+$/.test(property)) return data[getter](Number(property) * bytes, true);
 ++      return Reflect.get(target, property);
 ++    },
@@ -602,7 +972,7 @@ index 00000000..2bef3cf3
 + const NAPI_OK = 0;
 + const NAPI_INVALID_ARG = 1;
 + const NAPI_STRING_EXPECTED = 3;
-+@@ -146,7 +165,7 @@
++@@ -146,7 +166,7 @@
 +   _u32 = new Uint32Array();
 +   get u32() {
 +     if (this._u32.byteLength === 0) {
@@ -611,7 +981,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u32;
-+@@ -155,7 +174,7 @@
++@@ -155,7 +175,7 @@
 +   _i32 = new Int32Array();
 +   get i32() {
 +     if (this._i32.byteLength === 0) {
@@ -620,7 +990,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._i32;
-+@@ -164,7 +183,7 @@
++@@ -164,7 +184,7 @@
 +   _u16 = new Uint16Array();
 +   get u16() {
 +     if (this._u16.byteLength === 0) {
@@ -629,7 +999,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u16;
-+@@ -173,7 +192,7 @@
++@@ -173,7 +193,7 @@
 +   _u64 = new BigUint64Array();
 +   get u64() {
 +     if (this._u64.byteLength === 0) {
@@ -638,7 +1008,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u64;
-+@@ -182,7 +201,7 @@
++@@ -182,7 +202,7 @@
 +   _i64 = new BigInt64Array();
 +   get i64() {
 +     if (this._i64.byteLength === 0) {
@@ -647,7 +1017,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._i64;
-+@@ -191,7 +210,7 @@
++@@ -191,7 +211,7 @@
 +   _f64 = new Float64Array();
 +   get f64() {
 +     if (this._f64.byteLength === 0) {
@@ -658,13 +1028,14 @@ index 00000000..2bef3cf3
 +     return this._f64;
 +--- a/node_modules/napi-wasm/index.mjs
 ++++ b/node_modules/napi-wasm/index.mjs
-+@@ -1,3 +1,22 @@
++@@ -1,3 +1,23 @@
 ++// WASM linear memory is little-endian on every host, including IBM s390x.
 ++const bigEndianHost = new Uint8Array(new Uint16Array([1]).buffer)[0] === 0;
 ++function littleEndianView(buffer, bytes, getter, setter) {
 ++  const data = new DataView(buffer);
-++  return new Proxy({ byteLength: buffer.byteLength }, {
+++  return new Proxy({}, {
 ++    get(target, property) {
+++      if (property === 'byteLength') return buffer.byteLength;
 ++      if (typeof property === 'string' && /^\d+$/.test(property)) return data[getter](Number(property) * bytes, true);
 ++      return Reflect.get(target, property);
 ++    },
@@ -681,7 +1052,7 @@ index 00000000..2bef3cf3
 + const NAPI_OK = 0;
 + const NAPI_INVALID_ARG = 1;
 + const NAPI_STRING_EXPECTED = 3;
-+@@ -146,7 +165,7 @@
++@@ -146,7 +166,7 @@
 +   _u32 = new Uint32Array();
 +   get u32() {
 +     if (this._u32.byteLength === 0) {
@@ -690,7 +1061,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u32;
-+@@ -155,7 +174,7 @@
++@@ -155,7 +175,7 @@
 +   _i32 = new Int32Array();
 +   get i32() {
 +     if (this._i32.byteLength === 0) {
@@ -699,7 +1070,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._i32;
-+@@ -164,7 +183,7 @@
++@@ -164,7 +184,7 @@
 +   _u16 = new Uint16Array();
 +   get u16() {
 +     if (this._u16.byteLength === 0) {
@@ -708,7 +1079,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u16;
-+@@ -173,7 +192,7 @@
++@@ -173,7 +193,7 @@
 +   _u64 = new BigUint64Array();
 +   get u64() {
 +     if (this._u64.byteLength === 0) {
@@ -717,7 +1088,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._u64;
-+@@ -182,7 +201,7 @@
++@@ -182,7 +202,7 @@
 +   _i64 = new BigInt64Array();
 +   get i64() {
 +     if (this._i64.byteLength === 0) {
@@ -726,7 +1097,7 @@ index 00000000..2bef3cf3
 +     }
 + 
 +     return this._i64;
-+@@ -191,7 +210,7 @@
++@@ -191,7 +211,7 @@
 +   _f64 = new Float64Array();
 +   get f64() {
 +     if (this._f64.byteLength === 0) {
@@ -791,3 +1162,16 @@ index 27654927..b37e6b1d 100644
  
    '@smithy/credential-provider-imds@4.5.2':
      resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}
+diff --git a/vitest.shared.ts b/vitest.shared.ts
+index 7c6ca2be..ecd7175c 100644
+--- a/vitest.shared.ts
++++ b/vitest.shared.ts
+@@ -7,6 +7,8 @@ const decoratorSyntax = /^\s*@[A-Za-z_$][\w$]*/m
+  * Node lists the positive spelling in `allowedNodeEnvironmentFlags` for this negatable flag.
+  */
+ export const vitestExecArgv = process.allowedNodeEnvironmentFlags.has('--webstorage') ? ['--no-webstorage'] : []
++// Vitest replaces worker execArgv; the s390x loader needs the same internal API as the launcher.
++if (process.platform === 'linux' && process.arch === 's390x') vitestExecArgv.push('--expose-internals')
+ 
+ /**
+  * Transform standard TypeScript decorators before Vite's default parser sees source files.

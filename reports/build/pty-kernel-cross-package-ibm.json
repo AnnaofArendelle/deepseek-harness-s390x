@@ -1,0 +1,22 @@
+{
+  "world": "IBM-initial-cross-package",
+  "architecture": "s390x",
+  "tests": [
+    {
+      "mode": "read",
+      "syscall": "3 0x0 0x2d3de90 0x400 0x3ff9fde9c10 0x0 0x17feff0 0x3ffef578e38 0x3ff9fd13834",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "select",
+      "syscall": "301 0x1 0x3ffcff6d8a8 0x0 0x0 0x0 0x0 0x3ffcff6d708 0x3ffab01bea0",
+      "result": "real-stdin-wait-detected-and-resumed"
+    },
+    {
+      "mode": "poll",
+      "syscall": "168 0x3ff85b781c0 0x1 0xffffffffffffffff 0x3ff860e9c10 0x0 0xffffffff 0x3ffd55f99d0 0x3ff860131f4",
+      "result": "real-stdin-wait-detected-and-resumed"
+    }
+  ],
+  "status": "passed"
+}

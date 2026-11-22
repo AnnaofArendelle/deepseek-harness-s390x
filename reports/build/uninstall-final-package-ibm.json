@@ -1,0 +1,12 @@
+{
+  "world": "IBM-native-isolated-HOME",
+  "tests": [
+    "clean-directory-install",
+    "copied-release-links-verified",
+    "public-context-menu-budget-configured-before-start",
+    "command-link-removed",
+    "uninstall-preserves-user-data"
+  ],
+  "systemd": "stubbed-only-for-isolated-uninstall; actual-service-tested-separately",
+  "status": "passed"
+}

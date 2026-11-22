@@ -1,0 +1,16 @@
+{
+  "world": "IBM-final-package-after-server-reboot",
+  "bootBefore": "2c67ae66-0d5f-49ba-8a66-1d1ab947b707",
+  "bootAfter": "0d062f71-f87b-419c-97c1-831a1d069889",
+  "restoredSessions": 19,
+  "tests": [
+    "actual-server-reboot",
+    "user-service-auto-start-with-linger",
+    "service-active-running-NRestarts-zero",
+    "saved-3080-iptables-rule-present",
+    "netfilter-persistent-active",
+    "persisted-sessions-restored-idle",
+    "temporary-swap-not-enabled-after-reboot"
+  ],
+  "status": "passed"
+}

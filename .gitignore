@@ -1,0 +1,15 @@
+# Local credentials must never enter the adaptation repository.
+/ibm_key.pem
+*.pem
+.env
+.env.*
+!.env.example
+
+# Read-only source checkouts and downloaded dependency inspection material.
+/investigation/
+
+# Future build outputs and local caches.
+/dist/
+/build/
+/node_modules/
+/.cache/

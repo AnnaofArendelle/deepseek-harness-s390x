@@ -1,0 +1,12 @@
+✔ captures fcntl errno and validates C integer arguments (2.615558ms)
+✔ failed execve returns errno and rejects embedded NUL (17.265899ms)
+✔ execve preserves fd 3, argv, Unicode and exact environment (46.041951ms)
+✔ descriptor flags round trip without changing unrelated flags (59.44517ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2353.165916

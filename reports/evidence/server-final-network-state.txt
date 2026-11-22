@@ -1,0 +1,58 @@
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*          
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*          
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*          
+LISTEN 0      4096            [::]:22           [::]:*          
+table ip raw {
+	chain PREROUTING {
+		type filter hook prerouting priority raw; policy accept;
+		iifname "lo" counter packets 444 bytes 53206 notrack
+	}
+
+	chain OUTPUT {
+		type filter hook output priority raw; policy accept;
+		oifname "lo" counter packets 444 bytes 53206 notrack
+	}
+}
+table ip filter {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		ip saddr 127.0.0.0/8 ip daddr 127.0.0.0/8 counter packets 444 bytes 53206 accept
+		ip protocol tcp ct state new tcp dport 22 counter packets 64 bytes 3592 accept
+		ip protocol icmp counter packets 135 bytes 5912 accept
+		ct state related,established counter packets 19553 bytes 331573155 accept
+		counter packets 2471 bytes 131514 reject with icmp type host-prohibited
+	}
+
+	chain FORWARD {
+		type filter hook forward priority filter; policy accept;
+	}
+
+	chain OUTPUT {
+		type filter hook output priority filter; policy accept;
+	}
+}
+table ip6 filter {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+	}
+
+	chain FORWARD {
+		type filter hook forward priority filter; policy accept;
+	}
+
+	chain OUTPUT {
+		type filter hook output priority filter; policy accept;
+	}
+}
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
+-A INPUT -p tcp -m conntrack --ctstate NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+1
+# Warning: table ip raw is managed by iptables-nft, do not touch!
+# Warning: table ip filter is managed by iptables-nft, do not touch!

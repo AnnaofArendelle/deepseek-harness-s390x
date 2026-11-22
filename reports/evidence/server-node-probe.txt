@@ -1,0 +1,42 @@
+node.tar.xz: OK
+internal/modules/esm/loader OK [
+  'createModuleLoader',
+  'getOrInitializeCascadedLoader',
+  'isCascadedLoaderInitialized',
+  'register'
+]
+internal/modules/cjs/loader OK [
+  'kModuleSource',
+  'kModuleExport',
+  'kModuleExportNames',
+  'kModuleCircularVisited',
+  'initializeCJS',
+  'Module'
+]
+internal/modules/helpers OK [
+  'addBuiltinLibsToObject',
+  'assertBufferSource',
+  'constants',
+  'enableCompileCache',
+  'flushCompileCache',
+  'getBuiltinModule'
+]
+internal/modules/esm/utils OK [
+  'registerModule',
+  'initializeESM',
+  'getDefaultConditions',
+  'getConditionsSet',
+  'shouldSpawnLoaderHookWorker',
+  'compileSourceTextModule'
+]
+internal/modules/esm/resolve OK [
+  'decorateErrorWithCommonJSHints',
+  'defaultResolve',
+  'encodedSepRegEx',
+  'legacyMainResolve',
+  'packageExportsResolve',
+  'packageImportsResolve'
+]
+{"node":"v24.22.3","arch":"s390x","endianness":"BE","napi":"10","execve":"function"}
+SQLITE [Object: null prototype] { v: 's390x-ok' }
+ZSTD s390x-zstd-probe

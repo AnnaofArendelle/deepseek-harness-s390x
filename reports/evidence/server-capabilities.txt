@@ -1,0 +1,73 @@
+lockdown,capability,landlock,yama,apparmor1
+running
+cpu memory pids
+Landlock ABI: 4 errno: 0
+#define __NR_read 3
+#define __NR_select 142
+#define __NR_poll 168
+#define __NR_epoll_wait 251
+#define __NR_pselect6 301
+#define __NR_ppoll 302
+#define __NR_epoll_pwait 312
+#define __NR_landlock_create_ruleset 444
+#define __NR_landlock_add_rule 445
+#define __NR_landlock_restrict_self 446
+musl-tools:
+  Installed: (none)
+  Candidate: 1.2.4-2
+  Version table:
+     1.2.4-2 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/universe s390x Packages
+python3-numpy:
+  Installed: (none)
+  Candidate: 1:1.26.4+ds-6ubuntu1
+  Version table:
+     1:1.26.4+ds-6ubuntu1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/main s390x Packages
+python3-pandas:
+  Installed: (none)
+  Candidate: 2.1.4+dfsg-7
+  Version table:
+     2.1.4+dfsg-7 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/universe s390x Packages
+python3-pil:
+  Installed: (none)
+  Candidate: 10.2.0-1ubuntu1.5
+  Version table:
+     10.2.0-1ubuntu1.5 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble-updates/main s390x Packages
+        500 http://ports.ubuntu.com/ubuntu-ports noble-security/main s390x Packages
+     10.2.0-1build1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/main s390x Packages
+python3-lxml:
+  Installed: (none)
+  Candidate: 5.2.1-1ubuntu0.2
+  Version table:
+     5.2.1-1ubuntu0.2 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble-updates/main s390x Packages
+        500 http://ports.ubuntu.com/ubuntu-ports noble-security/main s390x Packages
+     5.2.1-1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/main s390x Packages
+libcairo2-dev:
+  Installed: (none)
+  Candidate: 1.18.0-3build1
+  Version table:
+     1.18.0-3build1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/main s390x Packages
+libpango1.0-dev:
+  Installed: (none)
+  Candidate: 1.52.1+ds-1build1
+  Version table:
+     1.52.1+ds-1build1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/main s390x Packages
+libreoffice:
+  Installed: (none)
+  Candidate: 4:24.2.7-0ubuntu0.24.04.7
+  Version table:
+     4:26.2.5.2-0ubuntu0.26.04.1~bpo24.04.1 100
+        100 http://ports.ubuntu.com/ubuntu-ports noble-backports/universe s390x Packages
+     4:24.2.7-0ubuntu0.24.04.7 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble-updates/universe s390x Packages
+        500 http://ports.ubuntu.com/ubuntu-ports noble-security/universe s390x Packages
+     4:24.2.2-0ubuntu1 500
+        500 http://ports.ubuntu.com/ubuntu-ports noble/universe s390x Packages

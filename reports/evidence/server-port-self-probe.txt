@@ -1,0 +1,5 @@
+dsh-s390x-http-probe-ok
+lo               UNKNOWN        127.0.0.1/8 
+enc1000          UP             148.100.112.82/24 
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+LISTEN 0      5            0.0.0.0:3080      0.0.0.0:*          

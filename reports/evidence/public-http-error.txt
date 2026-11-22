@@ -1,0 +1,13 @@
+*   Trying 148.100.112.82:3080...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 148.100.112.82 (148.100.112.82) port 3080 (#0)
+> GET /public-probe HTTP/1.1
+> Host: 148.100.112.82:3080
+> User-Agent: curl/7.81.0
+> Accept: */*
+> 
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:03 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0* Empty reply from server
+  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0
+* Closing connection 0
+curl: (52) Empty reply from server

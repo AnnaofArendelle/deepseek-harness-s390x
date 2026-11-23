@@ -17,5 +17,7 @@ node --expose-internals node_modules/vitest/vitest.mjs run --maxWorkers=2 \
 {
   node --expose-internals node_modules/vitest/vitest.mjs run --maxWorkers=2 "$simulation"
   DSH_SOURCE="$source_dir" node --test "$root/tests/native-process.test.mjs" "$root/tests/platform-elf.test.mjs"
+  node --test "$root/tests/install-manager.test.mjs"
+  bash -n "$root/runtime/https-system.sh" "$root/runtime/dshctl" "$root/scripts/install.sh" "$root/scripts/install-latest.sh"
 } > "$root/build/ci/simulation-report.txt" 2>&1
 python3 "$root/scripts/archive-js.py" "$source_dir" "$root/build/ci/js-artifacts.tar.gz"

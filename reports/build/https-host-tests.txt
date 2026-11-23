@@ -1,0 +1,22 @@
+✔ clean manual installation publishes both commands and uninstall preserves data (468.622974ms)
+✔ HTTPS public URL needs setup rather than silently serving HTTP (69.0751ms)
+✔ short controls use user systemd and url refuses a stopped service (437.170825ms)
+✔ stopped-service upgrade preserves HTTPS settings without invoking sudo (438.526019ms)
+✔ setup rejects invalid addresses or missing terms before system changes (633.901405ms)
+✔ certificate failure leaves the existing HTTP configuration and service intact (297.08839ms)
+✔ captures fcntl errno and validates C integer arguments (2.420922ms)
+✔ failed execve returns errno and rejects embedded NUL (1.210638ms)
+✔ execve preserves fd 3, argv, Unicode and exact environment (70.749833ms)
+✔ descriptor flags round trip without changing unrelated flags (65.461079ms)
+✔ accepts ELF64 big-endian machine 22 with the declared Node-API symbols (8.333114ms)
+✔ rejects little-endian and foreign machine headers (4.310278ms)
+✔ rejects the wrong ELF file type, missing registration and truncated headers (5.450593ms)
+✔ rejects undeclared payloads and a nonexecutable launcher (3.121589ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4322.235909

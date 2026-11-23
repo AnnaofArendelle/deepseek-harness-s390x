@@ -1,0 +1,15 @@
+# HTTPS 简化部署验收（2026-11-23）
+
+固定 DSH 上游仍为 2e39e70496aa02986ca6a820c5d497e816b69d7e / 0.2.2-rc.5，Node 24.22.3。本次更新安装/管理脚本，原生核心产物复用此前 IBM 原生验证包；未重编译 WebUI 或原生模块。
+
+- Ubuntu 24.04 s390x 真机实际申请 Let’s Encrypt 公网 IPv4 证书；HTTP-01 测试 CA 与正式 CA 均成功。公网地址仅保存在私有测试材料中。
+- 外部系统 TLS 校验成功，未认证 HTTPS 请求返回 401；80 端口跳转 HTTPS，验证路径保持可达。
+- x64 Chromium 访问真机：受信任 TLS、安全上下文、Secure/HttpOnly cookie、登录、RPC、WSS PTY 输入输出/ANSI/尺寸、刷新保留、关闭和无 JS 错误通过。实际目录选择器加载远程目录并取消通过。
+- 带有效凭据的跨站 Origin 请求返回 403。未关闭上游认证或 Host/Origin 策略。
+- 真机升级测试：活动终端阻止升级；故障启动恢复旧程序和迁移前数据；手动恢复与最终升级健康检查通过。见 https-upgrade-ibm.json。
+- 证书定时器每 6 小时检查，Persistent=true；手动触发首次 cron 返回 Result=success / ExecMainStatus=0。证书尚未到续期时间，这次跳过了实际重签；已验证签发/部署与 reload hook，不能宣称已观察到下一次自动续期。
+- cron 与显式 Nginx reload 前后 DSH MainPID 不变；已有 WSS PTY 保持连接，重载后真实执行命令输出 s390x。见 https-renew-browser-ibm.json。
+- start/stop/status/logs 真机通过；服务 enabled、active，用户 Linger=yes。证书私钥权限 600、root 所有。
+- 本地 x64 14 项单元通过（含安装管理 6 项），上游请求信任 13 项通过，21 个 README Bash 代码块语法通过。
+
+CI 只做 x64 源码/类型/模拟/ELF 与交叉构建，不申请证书、不连接测试机、不运行 s390x、QEMU 或 VM。此次真机与公网测试均由人工实施路径执行。全新最终包、托管 CI 和发布结果在完成后另补。

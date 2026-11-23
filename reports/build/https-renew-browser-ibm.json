@@ -1,0 +1,9 @@
+{
+  "world": "external-x64-browser-to-IBM-s390x-HTTPS",
+  "tests": [
+    "browser-trusted-TLS-secure-context-and-Secure-HttpOnly-auth-cookie",
+    "cross-origin-authenticated-request-rejected",
+    "existing-WSS-PTY-remains-open-and-usable-through-certificate-cron-and-nginx-reload"
+  ],
+  "status": "passed"
+}

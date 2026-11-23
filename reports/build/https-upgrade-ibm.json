@@ -1,0 +1,10 @@
+{
+  "world": "IBM-installed-service",
+  "tests": [
+    "active-terminal-refuses-upgrade-before-switch",
+    "failed-new-program-restores-old-program-and-pre-migration-data",
+    "explicit-restore-restores-program-and-data-snapshot",
+    "final-candidate-upgrade-and-authenticated-health"
+  ],
+  "status": "passed"
+}

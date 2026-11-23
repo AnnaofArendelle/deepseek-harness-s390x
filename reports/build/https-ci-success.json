@@ -1,0 +1,13 @@
+{
+  "run": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/actions/runs/45183414538",
+  "commit": "45e0c6740cfac082ae78aa3f1bbcd539f9dc47d8",
+  "status": "success",
+  "jobs": [
+    "select",
+    "javascript-and-s390x-simulation",
+    "cross-package",
+    "publish"
+  ],
+  "targetRuntimeTested": false,
+  "ciTargetExecution": "none; no SSH, QEMU, VM or s390x executable execution"
+}

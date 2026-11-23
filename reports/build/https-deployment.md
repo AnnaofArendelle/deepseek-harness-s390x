@@ -12,4 +12,10 @@
 - start/stop/status/logs 真机通过；服务 enabled、active，用户 Linger=yes。证书私钥权限 600、root 所有。
 - 本地 x64 14 项单元通过（含安装管理 6 项），上游请求信任 13 项通过，21 个 README Bash 代码块语法通过。
 
-CI 只做 x64 源码/类型/模拟/ELF 与交叉构建，不申请证书、不连接测试机、不运行 s390x、QEMU 或 VM。此次真机与公网测试均由人工实施路径执行。全新最终包、托管 CI 和发布结果在完成后另补。
+CI 只做 x64 源码/类型/模拟/ELF 与交叉构建，不申请证书、不连接测试机、不运行 s390x、QEMU 或 VM。此次真机与公网测试均由人工实施路径执行。无参数 ./install.sh 真机全新安装向导退出码 0，自动 HTTPS / 用户服务 / linger / timer 均成功；重装后公网 WebUI 与 WSS PTY 再验通过。见 https-clean-browser-ibm.json。
+
+HTTPS Agent 与后台任务补验使用 mock 模型、真实工具执行：多轮文件写入/修改/读取与可见回复、浏览器断开后完成、界面主动停止后任务状态与不存在的结果文件、刷新持久化均通过。测试插件已移除并恢复原配置。见 https-agent-mock-ibm.json。
+
+首轮托管 CI 在新增安装管理测试处失败：CI 工作目录为上游源码，测试错误地按 cwd 查找适配脚本。已改为 import.meta.dirname 定位，在相同工作目录重放 6 项全部通过；DSH artifacts、聚合类型检查和 105 项上游测试在失败轮均通过。最终托管 CI 45183414538 的 select / JavaScript+模拟 / cross-package / publish 全部成功；自动交叉包继续标为未经目标运行验收。见 https-ci-success.json。
+
+最终手工真机包 SHA-256 校验与升级、服务器重启均通过；DSH enabled/active、Linger=yes、Nginx/timer active、本机 80/3080 规则保留，重启后外部可信 HTTPS 登录与 WSS PTY 再验通过。见 https-reboot-ibm.json 与 https-postreboot-browser-ibm.json。

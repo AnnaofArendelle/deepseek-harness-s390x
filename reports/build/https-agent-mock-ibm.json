@@ -1,0 +1,12 @@
+{
+  "world": "x64-browser-to-s390x-full-service",
+  "model": "mock-scripted-response; actual Agent loop, bash, filesystem and jobs",
+  "tests": [
+    "Agent-multi-turn-real-file-write-edit-read-and-visible-streamed-reply",
+    "background-continues-after-browser-disconnect-file-and-job-state-verified",
+    "job-panel-human-two-click-stop-process-state-and-absent-result-verified",
+    "session-refresh-and-file-persistence"
+  ],
+  "status": "passed",
+  "transport": "trusted HTTPS / WSS"
+}

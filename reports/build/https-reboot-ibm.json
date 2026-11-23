@@ -1,0 +1,12 @@
+{
+  "world": "IBM-s390x-final-HTTPS-package",
+  "tests": [
+    "boot-id-changed",
+    "DSH-service-active-and-enabled",
+    "Linger-yes",
+    "nginx-active",
+    "certificate-timer-active",
+    "iptables-80-and-3080-persisted"
+  ],
+  "status": "passed"
+}

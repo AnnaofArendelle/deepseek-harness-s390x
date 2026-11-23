@@ -1,0 +1,13 @@
+{
+  "world": "x64-browser-to-s390x",
+  "tests": [
+    "authentication-and-WebUI",
+    "session-list-and-create",
+    "authenticated-WebSocket-PTY-ANSI-input-output-resize",
+    "refresh-and-terminal-retention",
+    "terminal-close",
+    "no-browser-JavaScript-errors"
+  ],
+  "status": "passed",
+  "installation": "clean-no-argument-install.sh-wizard"
+}

@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 const scratch=mkdtempSync(join(tmpdir(),'dsh-manager-host-'));
-const manager=resolve('scripts/manage-install.mjs');
+const manager=resolve(import.meta.dirname,'../scripts/manage-install.mjs');
 after(()=>rmSync(scratch,{recursive:true,force:true}));
 function fixture() {
  const home=mkdtempSync(join(scratch,'home-')),pkg=join(home,'package'),bin=join(home,'tools'),prefix=join(home,'installation'),log=join(home,'calls');

@@ -2,9 +2,9 @@ name: Build s390x adaptation
 on:
   push:
     branches: [main, 'codex/**']
-    paths-ignore: [README.md, 'reports/**']
+    paths-ignore: [README.md, README.zh-CN.md, 'docs/**', 'reports/**']
   pull_request:
-    paths-ignore: [README.md, 'reports/**']
+    paths-ignore: [README.md, README.zh-CN.md, 'docs/**', 'reports/**']
   workflow_dispatch:
     inputs:
       upstream_ref:

@@ -19,3 +19,5 @@ HTTPS Agent 与后台任务补验使用 mock 模型、真实工具执行：多�
 首轮托管 CI 在新增安装管理测试处失败：CI 工作目录为上游源码，测试错误地按 cwd 查找适配脚本。已改为 import.meta.dirname 定位，在相同工作目录重放 6 项全部通过；DSH artifacts、聚合类型检查和 105 项上游测试在失败轮均通过。最终托管 CI 45183414538 的 select / JavaScript+模拟 / cross-package / publish 全部成功；自动交叉包继续标为未经目标运行验收。见 https-ci-success.json。
 
 最终手工真机包 SHA-256 校验与升级、服务器重启均通过；DSH enabled/active、Linger=yes、Nginx/timer active、本机 80/3080 规则保留，重启后外部可信 HTTPS 登录与 WSS PTY 再验通过。见 https-reboot-ibm.json 与 https-postreboot-browser-ibm.json。
+
+正式 Latest 已发布：native-https-0.2.2-rc.5-s390x-45e0c674（draft=false / prerelease=false）。IBM 真机从公开 Latest 下载压缩包与 SHA-256，校验 OK，与最终验收包一致。见 https-release-final.json。

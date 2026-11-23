@@ -1,0 +1,35 @@
+{
+  "assets": [
+    {
+      "digest": "sha256:02a0dd34beea380abdb80af58532ebeed5facc79d0cacb2e1b6521f323d86176",
+      "name": "deepseek-harness-0.2.2-rc.5-linux-s390x.build-info.json",
+      "size": 5389
+    },
+    {
+      "digest": "sha256:d9b20162c1014f41cbabcb59e2335c878c50c5dada891fa7275e6ae98e3c2a1e",
+      "name": "deepseek-harness-0.2.2-rc.5-linux-s390x.dependencies.json",
+      "size": 199445
+    },
+    {
+      "digest": "sha256:468c8b8a01866cc2428b8c3148b5291ddbd4bbdfb4300b7948b8d3537de74c25",
+      "name": "deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz",
+      "size": 208203435
+    },
+    {
+      "digest": "sha256:34a09e217ba2ddd7c7c99a7234c8de228b61215074e94de83682a6c710f16f61",
+      "name": "deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256",
+      "size": 113
+    },
+    {
+      "digest": "sha256:7ca762b220a8bf5547d6cb4875c8efc0fbf4123382d2d92b7027960266e6c210",
+      "name": "https-acceptance-reports.tar.gz",
+      "size": 4116
+    }
+  ],
+  "draft": false,
+  "html_url": "https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/tag/native-https-0.2.2-rc.5-s390x-45e0c674",
+  "prerelease": false,
+  "tag_name": "native-https-0.2.2-rc.5-s390x-45e0c674",
+  "publicDownloadVerifiedOn": "IBM s390x",
+  "publicDownloadSHA256": "468c8b8a01866cc2428b8c3148b5291ddbd4bbdfb4300b7948b8d3537de74c25"
+}

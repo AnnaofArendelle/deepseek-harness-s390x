@@ -12,6 +12,8 @@
 
 以下步骤在服务器上执行，使用同一个普通用户登录和管理 DSH；只有安装系统软件、设置防火墙和启用 linger 的命令使用 `sudo`。不要用 `sudo ./install.sh`，否则程序、数据和用户服务会安装到 root 的目录。**全新安装从第 0 步开始，确认并配置前置环境后再放行端口；已有合格环境可以跳过第 0 步。** 已有本适配版安装时直接看[手动升级与恢复](#手动升级与恢复)。本页为持续更新的安装指南，首包内附 README 保留了打包时的内容，安装时优先参考本页。
 
+下面使用 Bash。按小节顺序执行，每个代码框单独复制；保留命令原有换行，不在行尾添加 `\`，也不把相邻命令拼成一行。下载、安装和服务配置期间保持在同一个 SSH 终端，变量才会保留。遇到报错先处理，不继续执行下一步。主流程部署 HTTP；HTTPS、前台调试和撤销规则都是可选操作，不要和主流程一起执行。
+
 ### 0. 确认前置条件
 
 | 项目 | 要求及准备方法 |
@@ -41,15 +43,21 @@ sudo -v
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends \
-  ca-certificates curl tar gzip coreutils libstdc++6 libgcc-s1 \
-  iproute2 procps dbus-user-session nano
+```
+
+更新成功后安装依赖（下面是一条完整命令）：
+
+```bash
+sudo apt-get install -y --no-install-recommends ca-certificates curl tar gzip coreutils libstdc++6 libgcc-s1 iproute2 procps dbus-user-session nano
 ```
 
 再检查用户服务和端口：
 
 ```bash
 systemctl --user is-system-running
+```
+
+```bash
 ss -ltn '( sport = :3080 )'
 ```
 
@@ -71,11 +79,23 @@ curl -I --connect-timeout 15 --max-time 30 https://github.com/
 
 ```bash
 sudo apt-get install -y iptables
-sudo iptables -C INPUT -p tcp --dport 3080 -j ACCEPT 2>/dev/null ||
-  sudo iptables -I INPUT 1 -p tcp --dport 3080 -j ACCEPT
+```
 
-sudo env DEBIAN_FRONTEND=noninteractive \
-  apt-get install -y iptables-persistent
+添加端口规则：
+
+```bash
+sudo iptables -C INPUT -p tcp --dport 3080 -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 1 -p tcp --dport 3080 -j ACCEPT
+```
+
+安装持久化工具：
+
+```bash
+sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
+```
+
+保存现有规则：
+
+```bash
 sudo netfilter-persistent save
 ```
 
@@ -83,21 +103,34 @@ sudo netfilter-persistent save
 
 ```bash
 sudo iptables -C INPUT -p tcp --dport 3080 -j ACCEPT
+```
+
+```bash
 sudo systemctl status netfilter-persistent --no-pager
 ```
 
-若本机监听正常但外部访问超时，请检查云侧规则及上游网络。撤销上面增加的 iptables 规则：
+若本机监听正常但外部访问超时，请检查云侧规则及上游网络。
+
+<details>
+<summary>可选：撤销端口规则（安装时不要执行）</summary>
+
+仅在不再开放此端口时执行：
 
 ```bash
 sudo iptables -D INPUT -p tcp --dport 3080 -j ACCEPT
+```
+
+```bash
 sudo netfilter-persistent save
 ```
+
+</details>
 
 ### 2. 安装压缩包
 
 从本仓库 Release 下载 `deepseek-harness-VERSION-linux-s390x.tar.gz` 及对应 `.sha256`，先校验，再解压。首版可优先使用上面的 IBM 原生验证包；自动交叉包的目标运行验证限制见 CI/CD 部分。校验结果必须为 `OK`，失败时不要继续安装。
 
-下面整段可复制执行：会创建独立下载目录，并询问浏览器实际访问的公网 URL。填写你自己服务器的公网 IP/域名，例如 `http://你的公网IP:3080/`。公网 URL 不要填写 `0.0.0.0` 或 `127.0.0.1`。
+下面分步下载当前原生验证首包，再输入浏览器实际访问的公网 URL。填写你自己服务器的公网 IP/域名，例如 `http://你的公网IP:3080/`。公网 URL 不要填写 `0.0.0.0` 或 `127.0.0.1`。
 
 | 参数 | 作用 | 公网部署填写方式 |
 |---|---|---|
@@ -107,21 +140,58 @@ sudo netfilter-persistent save
 
 `0.0.0.0` 表示“所有本机 IPv4 网卡”，不是这台服务器的公网地址。把它作为 public URL 会生成无法从用户电脑正确访问的登录入口，也无法匹配实际浏览器请求的 Host/Origin。公网 IP 还可能由云侧 NAT 映射，反向代理也可能使用另一域名、端口或 HTTPS，程序无法仅根据监听网卡可靠判断。因此安装时填写一次实际访问 URL，安装器将其保存，后续启动和开机自启不必重复输入。
 
+#### 2.1 创建下载目录
+
 ```bash
-(
-set -e
 download_dir=$(mktemp -d "$HOME/dsh-download.XXXXXXXX")
+```
+
+```bash
 cd "$download_dir"
+```
+
+#### 2.2 下载安装包和校验文件
+
+先保存固定下载地址：
+
+```bash
 release=https://github.com/AnnaofArendelle/deepseek-harness-s390x/releases/download/native-0.2.2-rc.5-s390x-b6d3d87
+```
+
+```bash
 curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz"
+```
+
+```bash
 curl -fLO "$release/deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256"
-sha256sum -c deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256
-tar -xzf deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz
+```
+
+#### 2.3 校验并解压
+
+下面一条命令仅在校验成功后解压；必须看到校验结果 `OK` 且没有解压错误：
+
+```bash
+sha256sum -c deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz.sha256 && tar -xzf deepseek-harness-0.2.2-rc.5-linux-s390x.tar.gz
+```
+
+成功后进入解压目录：
+
+```bash
 cd deepseek-harness-0.2.2-rc.5-linux-s390x
+```
+
+#### 2.4 输入公网地址并安装
+
+**仅复制下面这个代码框。** 终端出现提示后，输入完整 HTTP URL，再按 Enter。不要把下一条安装命令当作提示的输入：
+
+```bash
 read -r -p '请输入公网 URL（http://你的公网IP:3080/）: ' dsh_public_url
-: "${dsh_public_url:?公网 URL 不能为空}"
+```
+
+输入完成后再单独执行安装命令：
+
+```bash
 ./install.sh --host 0.0.0.0 --port 3080 --public-url "$dsh_public_url"
-)
 ```
 
 安装器先检查包完整性和目标架构，再复制程序，不会自动启动服务。`--public-url` 会同时用于托管服务的认证入口和 trusted host。成功后可删除刚才的下载目录以腾出空间，保留已安装的程序和数据目录。
@@ -136,42 +206,97 @@ read -r -p '请输入公网 URL（http://你的公网IP:3080/）: ' dsh_public_u
 
 已有 `~/.local/bin/dsh` 时安装会拒绝覆盖；先用 `ls -l "$HOME/.local/bin/dsh"` 和 `command -v dsh` 确认来源，保留旧安装后再安排命令链接。看到 `Use upgrade for an existing installation` 表示应使用升级流程，不要删除数据重装。数据和程序分开保存；`--data /absolute/path` 可指定数据目录，直接使用 CLI 时也要设置相同的 `DSH_HOME`。
 
-使 `dsh` 在当前和后续 Bash 登录中可用：
+#### 2.5 配置命令路径
+
+使 `dsh` 在当前 Bash 终端中可用：
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
+```
+
+再把这项配置写入后续 Bash 会话；下面整个 `if` 块作为一段复制：
+
+```bash
 if ! grep -Fqx 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
   printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.bashrc"
 fi
+```
+
+检查命令位置和版本：
+
+```bash
 command -v dsh
+```
+
+```bash
 dsh --version
 ```
 
 `command -v dsh` 应指向当前用户的 `~/.local/bin/dsh`；仍找不到时可直接使用这个绝对路径。Zsh 用户把配置写入 `~/.zshrc`。运行时版本以包内 Node 为准，不受系统 Node 版本影响。
 
+#### 2.6 可选：Office 运行依赖
+
 需要 Office 预览、转换或表格重算时安装这些软件；无需现场源码编译：
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends \
-  libreoffice-writer libreoffice-calc libreoffice-impress \
-  python3-uno poppler-utils fonts-dejavu-core
+```
+
+```bash
+sudo apt-get install -y --no-install-recommends libreoffice-writer libreoffice-calc libreoffice-impress python3-uno poppler-utils fonts-dejavu-core
 ```
 
 ### 3. 启动
 
-推荐使用用户级 systemd 常驻服务。先安装/启用服务，再启用用户管理器的开机运行，最后启动：
+推荐使用用户级 systemd 常驻服务。安装完成后按下面四个小节操作；每个代码框单独执行，不在行尾添加反斜杠。
+
+#### 3.1 安装并启用用户服务
+
+先保存程序位置：
 
 ```bash
 runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
+```
+
+生成用户服务文件，同时启用开机启动；此命令不启动 DSH：
+
+```bash
 "$runtime/node/bin/node" "$runtime/manage-install.mjs" service
+```
+
+#### 3.2 允许用户服务在未登录时运行
+
+```bash
 sudo loginctl enable-linger "$USER"
+```
+
+这是退出 SSH 后继续运行、开机后无需登录即可运行的配置。
+
+#### 3.3 启动 DSH
+
+```bash
 "$runtime/node/bin/node" "$runtime/manage-install.mjs" start
+```
+
+如果换了 SSH 终端，先重新执行第 3.1 步的 `runtime=...` 赋值。已生成服务后，日常启动也可直接用 `systemctl --user start deepseek-harness-s390x.service`，不需要变量。
+
+#### 3.4 核对启动状态
+
+```bash
 systemctl --user status deepseek-harness-s390x.service --no-pager
+```
+
+```bash
+systemctl --user is-enabled deepseek-harness-s390x.service
+```
+
+```bash
 loginctl show-user "$USER" -p Linger
 ```
 
-应看到 `active (running)` 和 `Linger=yes`。这时关闭 SSH 或退出浏览器，Web 服务及已转入后台的任务仍可运行；服务器重启后服务也会启动。首次启动请等待就绪日志出现，仅看到 systemd 的 active 状态还不能证明 WebUI 已就绪。
+应分别看到 `active (running)`、`enabled` 和 `Linger=yes`。这时关闭 SSH 或退出浏览器，Web 服务及已转入后台的任务仍可运行；服务器重启后服务也会启动。首次启动请等待下一节的认证入口出现，仅看到 systemd 的 active 状态还不能证明 WebUI 已就绪。
+
+#### 日常管理（按需执行）
 
 日常管理使用同一个普通用户，在任意目录按需执行对应命令：
 
@@ -198,30 +323,43 @@ systemctl --user enable --now deepseek-harness-s390x.service
 
 也可用管理器的 `status`、`logs`、`stop`、`restart` 等命令完成相同操作。公网安装为文件右键菜单设置 `resolutionTimeoutMs: 15000`，避免上游默认 1 秒预算在远程网络上省略下载项；可在 `profiles/web/cordis.patch.yml` 调整。
 
-只做前台调试时执行下面的命令；它读取安装时保存的 host、port、public URL 和数据目录，Ctrl-C 停止。先停止同端口的常驻服务，否则端口会冲突：
+<details>
+<summary>可选：前台调试与原来的 dsh web 命令</summary>
+
+只做前台调试时执行下面的命令；它读取安装时保存的 host、port、public URL 和数据目录，Ctrl-C 停止。有活动任务时先在 WebUI 结束，关闭终端，再停止常驻服务，否则同端口启动会冲突：
+
+```bash
+systemctl --user stop deepseek-harness-s390x.service
+```
 
 ```bash
 runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
+```
+
+```bash
 "$runtime/node/bin/node" "$runtime/manage-install.mjs" foreground
 ```
 
 原来的 `dsh web` 命令仍然可用，调用同一套 WebUI/Agent。它是前台命令；希望退出 SSH 后继续运行时使用上面的 systemd 服务。直接执行 `dsh web` 使用上游默认监听参数，不会自动读取 `installation.json`；公网启动应显式带上参数：
 
 ```bash
-DSH_HOME="$HOME/.local/share/deepseek-harness" \
-  "$HOME/.local/bin/dsh" web --no-open --host 0.0.0.0 --port 3080 \
-  --public-url http://你的公网IP:3080/ --trusted-host 你的公网IP:3080
+DSH_HOME="$HOME/.local/share/deepseek-harness" "$HOME/.local/bin/dsh" web --no-open --host 0.0.0.0 --port 3080 --public-url http://你的公网IP:3080/ --trusted-host 你的公网IP:3080
 ```
 
-把两处 `你的公网IP` 换成同一个真实 IP/域名。自定义数据目录时把 `DSH_HOME` 一起换成安装时的目录。前台进程不保证在 SSH 断开后存活，也不要同时启动两份访问同一数据目录的 DSH。
+上面是一条命令，把两处 `你的公网IP` 换成同一个真实 IP/域名。自定义数据目录时把 `DSH_HOME` 一起换成安装时的目录。前台进程不保证在 SSH 断开后存活，也不要同时启动两份访问同一数据目录的 DSH。调试结束按 Ctrl-C，恢复常驻服务：
+
+```bash
+systemctl --user start deepseek-harness-s390x.service
+```
+
+</details>
 
 ### 4. 获取认证入口
 
 启动日志中以 `dsh web: http...` 开头的 URL 带认证 token。通过该完整 URL 登录；之后浏览器使用认证 cookie。请在自己的终端查看日志，不要公开 token 或整个 service.log。
 
 ```bash
-sed -n 's/^dsh web: \(http[^ ]*\)$/\1/p' \
-  "$HOME/.local/share/deepseek-harness/service.log"
+sed -n 's/^dsh web: \(http[^ ]*\)$/\1/p' "$HOME/.local/share/deepseek-harness/service.log"
 ```
 
 在自己电脑的浏览器打开完整 URL，接受首次欢迎提示后进入设置。重启后以当前日志的入口为准，旧入口可能失效；直接 CLI 启动时从它的终端输出获取入口。若文件尚无入口，稍等并看上一节日志；不要为了访问而关闭认证或 Host/Origin 检查。
@@ -318,12 +456,26 @@ systemctl --user restart deepseek-harness-s390x.service
 
 ```bash
 "$HOME/.local/bin/dsh" --version
+```
+
+```bash
 systemctl --user is-enabled deepseek-harness-s390x.service
+```
+
+```bash
 systemctl --user is-active deepseek-harness-s390x.service
+```
+
+```bash
 loginctl show-user "$USER" -p Linger
+```
+
+```bash
 ss -ltn '( sport = :3080 )'
-curl --connect-timeout 5 --max-time 10 -sS -o /dev/null \
-  -w 'HTTP %{http_code}\n' http://127.0.0.1:3080/
+```
+
+```bash
+curl --connect-timeout 5 --max-time 10 -sS -o /dev/null -w 'HTTP %{http_code}\n' http://127.0.0.1:3080/
 ```
 
 systemd 应为 `enabled` / `active`，linger 应为 `yes`，端口应有监听。未带 token 的本机 HTTP 检查只验证收到响应，登录成功还需外部浏览器认证。确认公网可登录、发送消息、终端可用后退出 SSH，再打开浏览器验证服务仍在线；计划内重启服务器后重复检查以确认服务和防火墙持久化。
@@ -345,17 +497,29 @@ systemd 应为 `enabled` / `active`，linger 应为 `yes`，端口应有监听�
 
 ## HTTPS
 
-有域名和证书时可直接以前台 CLI 启动 TLS：
+**现有发行包中的 DSH 已支持 HTTPS，无需修改 DSH 源码或重新编译。** `--tls-cert` 与 `--tls-key` 是上游自带的启动参数。证书需由浏览器信任，并覆盖实际访问的域名或 IP；DSH 不负责申请、续期或监视证书，更新证书后需重启。
+
+以下是已有证书时的**前台启动示例**，不属于 HTTP 全新安装主流程。先结束活动任务和终端，再停止占用 3080 的常驻服务：
 
 ```bash
-~/.local/bin/dsh web --no-open --host 0.0.0.0 --port 3080 \
-  --public-url https://dsh.example.com:3080/ \
-  --trusted-host dsh.example.com:3080 \
-  --tls-cert /absolute/path/fullchain.pem \
-  --tls-key /absolute/path/privkey.pem
+systemctl --user stop deepseek-harness-s390x.service
 ```
 
-也可在 loopback HTTP 服务前配置支持 WebSocket 升级的 HTTPS 反向代理。代理必须保留正确的 Host，转发 `Upgrade` / `Connection`，并在 DSH 中把 public URL 设为真实 HTTPS 地址。随包安装器的默认托管服务是 HTTP；自定义 TLS 服务需要自己的 systemd 参数配置。
+把域名和证书路径换成自己的值，下面整行作为一条命令复制：
+
+```bash
+DSH_HOME="$HOME/.local/share/deepseek-harness" "$HOME/.local/bin/dsh" web --no-open --host 0.0.0.0 --port 3080 --public-url https://dsh.example.com:3080/ --trusted-host dsh.example.com:3080 --tls-cert /absolute/path/fullchain.pem --tls-key /absolute/path/privkey.pem
+```
+
+浏览器使用启动输出中的完整 HTTPS 认证入口。只改 `--public-url` 的协议不会开启 TLS。此命令运行在前台，不保证退出 SSH 后存活；调试结束按 Ctrl-C，若要恢复原 HTTP 常驻服务：
+
+```bash
+systemctl --user start deepseek-harness-s390x.service
+```
+
+HTTPS 常驻可通过自定义 systemd 启动参数，或在 loopback HTTP 服务前配置支持 WebSocket 升级的 HTTPS 反向代理。代理需保留正确的 Host，转发 `Upgrade` / `Connection`，并在 HTTPS 链路上为认证 cookie 添加 `Secure`；DSH 公告的 public URL 应为真实 HTTPS 地址。
+
+**当前适配安装器/管理器仍按 HTTP 设计**：安装器只接受 HTTP public URL，托管脚本未传入证书参数，升级与恢复检查固定使用本机 HTTP/WS。完整接入托管 HTTPS 需要调整这些适配脚本并验证安装、重启和升级；这是运行脚本改动，不要求重新编译 WebUI 或原生模块。不要只改 `installation.json` 为 HTTPS 就认为托管服务已加密，也不要把上面的前台示例当作已完成 HTTPS 运维验收。
 
 ## 手动升级与恢复
 
@@ -363,8 +527,10 @@ systemd 应为 `enabled` / `active`，linger 应为 `yes`，端口应有监听�
 
 ```bash
 runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" upgrade \
-  --package /absolute/path/to/new-package
+```
+
+```bash
+"$runtime/node/bin/node" "$runtime/manage-install.mjs" upgrade --package /absolute/path/to/new-package
 ```
 
 升级器通过现有认证 API 检查会话、终端和任务；无法检查时拒绝升级。前台服务需先停止。升级备份数据、切换程序并检查服务就绪；失败时恢复旧程序和数据备份，失败数据单独保留。发生数据迁移后不要直接用旧程序读取新数据。
@@ -372,8 +538,7 @@ runtime="$HOME/.local/lib/deepseek-harness-s390x/current"
 恢复某次升级前状态：
 
 ```bash
-"$runtime/node/bin/node" "$runtime/manage-install.mjs" restore \
-  --backup /absolute/path/to/backups/TIMESTAMP
+"$runtime/node/bin/node" "$runtime/manage-install.mjs" restore --backup /absolute/path/to/backups/TIMESTAMP
 ```
 
 卸载程序和用户服务，保留数据：

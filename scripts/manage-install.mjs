@@ -172,7 +172,7 @@ switch(command) {
  case 'status': {const config=loaded();systemd(['status',service,'--no-pager'],true);console.log(`访问地址：${config.publicUrl}`);if(config.https)console.log('证书续期：系统 dsh-s390x-cert timer（每 6 小时）');break}
  case 'url': {const config=loaded();if(!running(config))throw Error('DSH 尚未运行，请先执行 dshctl start');const entry=readFileSync(join(config.data,'service.log'),'utf8').match(/https?:\/\/[^\s\x1b]+\?token=[^\s\x1b]+/)?.[0];if(!entry)throw Error('登录入口尚未就绪，请稍后重试或执行 dshctl logs');console.log(entry);break}
  case 'renew': {const config=loaded();if(!config.https)throw Error('请先运行 dshctl setup');run('sudo',['bash',join(current,'https-system.sh'),'renew',String(process.getuid())]);break}
- case 'logs': loaded();run('journalctl',['--user','-u',service,'-n','50','--no-pager']);break;
+ case 'logs': {const config=loaded();run('tail',['-n','50',join(config.data,'service.log')]);break}
  case 'upgrade': {
   const config=loaded();await requireIdle(config);
   if(running(config)&&!serviceActive())throw Error('Stop the foreground server before upgrading');
